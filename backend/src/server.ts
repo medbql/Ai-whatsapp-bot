@@ -6,7 +6,7 @@ import { startSession } from "./bot.ts";
 const app = Express();
 const port: Number = 8080;
 
-
+app.use(Express.json())
 // Manual CORS middleware
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*'); // Allow all origins
@@ -23,12 +23,16 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/', async (req, res) => {
+app.post('/linkDevice', async (req, res) => {
   console.log('Get requeste...')
+  const { sessionName } = req.body;
+
   let code: any;
-  await startSession().then((res => code = res))
+  await startSession(sessionName).then((res => code = res))
     .catch(err => code = err)
-  res.status(200).json({ code: code });
+
+  res.status(200).json({ code })
+
 })
 
 app.listen(port, () => { console.log('Start the server.......') })
