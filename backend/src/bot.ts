@@ -1,8 +1,10 @@
 import { makeWASocket, useMultiFileAuthState, type WASocket, type ConnectionState } from '@whiskeysockets/baileys';
+import { sessionStatus } from "./server.ts"
 
-export function startSession(sessionId: String | undefined): Promise<string | number> {
+export function startSession(sessionId: string): Promise<string | number> {
   return new Promise(async (resolve, reject) => {
     try {
+
 
       const { state, saveCreds } = await useMultiFileAuthState(`auth/${sessionId}`);
       const sock: WASocket = makeWASocket({
@@ -17,7 +19,7 @@ export function startSession(sessionId: String | undefined): Promise<string | nu
         console.log("Connection status:", connection, "\n");
         console.log('------------------------------------------------------- \n');
         //if new session we have a new qr code 
-        qr && (console.log(qr), resolve(qr))
+        qr && (resolve(qr))
 
         //when the connection status is close 
         connection === "close" && (
@@ -25,10 +27,12 @@ export function startSession(sessionId: String | undefined): Promise<string | nu
         )
 
         //when the connection status is open 
-        connection === 'open' && resolve(200)
+        connection === 'open' && sessionStatus(true, sessionId)
       })
 
       sock.ev.on('creds.update', saveCreds);
+
+      //} else { reject({ message: 'seesion alerady linked.' }) }
 
     } catch (error) {
       reject(error);
