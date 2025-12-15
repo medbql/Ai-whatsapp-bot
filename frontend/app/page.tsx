@@ -3,18 +3,29 @@ import { Button } from "@/components/ui/button";
 import QRCode from "react-qr-code";
 import { useEffect, useState } from "react";
 import { api } from "@/axios/config";
-import { Camera, Circle, LoaderCircle, MonitorSmartphone, QrCode, Settings, Smartphone, Verified, X } from "lucide-react";
+import { Camera, Circle, LoaderCircle, MonitorSmartphone, Plus, PlusIcon, QrCode, Settings, Smartphone, Verified, X } from "lucide-react";
 import { createPortal } from "react-dom";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input";
 
 interface linkedSessionProps {
   startSession: boolean,
   isClose: () => void,
+  sessionId: string
 }
 
 
-//-----------------LinkedSession component-----------//
-//---------------------------------------------------//
-const LinkedSession = ({ startSession, isClose }: linkedSessionProps) => {
+//-----------------LinkedSession component---------------------------------------//
+//-------------------------------------------------------------------------------//
+
+const LinkedSession = ({ startSession, isClose, sessionId }: linkedSessionProps) => {
   const [qr, setQr] = useState<string | null>(null);
   const [isLoading, setIsloading] = useState<boolean>(false);
   const [connected, setConnected] = useState<boolean>(false);
@@ -32,7 +43,7 @@ const LinkedSession = ({ startSession, isClose }: linkedSessionProps) => {
 
         ws.onopen = () => {
           ws.send(JSON.stringify({
-            sessionId: '+212 693223328'
+            sessionId: sessionId
           }))
         }
         ws.onmessage = (event) => {
@@ -47,8 +58,9 @@ const LinkedSession = ({ startSession, isClose }: linkedSessionProps) => {
             setTimeout(() => (setConnected(false), isClose()), 5000)
           }
         };
-        await api.post('/linkDevice', { sessionId: '+212 693223328' }).then(
+        await api.post('/linkDevice', { sessionId: sessionId }).then(
           ({ status, data }) => {
+            console.log(status, data)
             status === 201 ? setQr(data.response.QrCode)
               : status === 200 && isClose()
           }
@@ -123,11 +135,6 @@ const LinkedSession = ({ startSession, isClose }: linkedSessionProps) => {
             <p className="ml-3 text-white " >Confirme connection</p>
           </span>
 
-
-
-
-
-
         </div>
         <div className="bg-white/10 w-0.5 h-full"></div>
         <div >
@@ -151,9 +158,86 @@ const LinkedSession = ({ startSession, isClose }: linkedSessionProps) => {
 
 }
 
-export default function Home() {
 
-  const [startSession, setStartSession] = useState(false);
+
+//-----------------add Number component-------------------------------------------//
+//-------------------------------------------------------------------------------//
+
+
+interface propsForm {
+  isOpen: boolean,
+  isClose: () => void,
+}
+
+
+const NumberForm = ({ isOpen, isClose }: propsForm) => {
+  const [WhatsappNum, setWhatsappNum] = useState<string>('');
+  const [isLoading, setIsloading] = useState<boolean>(false);
+
+  const saveNumber = async (): Promise<void> => {
+    try {
+      setIsloading(true)
+      WhatsappNum.length === 14 && await api.post('/addNumber', { number: WhatsappNum, user_id: 1 }).then(
+        ({ status }) => {
+          status === 201 && isClose()
+        }
+      )
+    } catch (error) {
+
+    }
+  }
+
+
+  return isOpen ? <>
+    {createPortal(
+      <div className='fixed  z-10 top-0 bottom-0 right-0 left-0 bg-white/20 backdrop-brightness-50'>
+        <div className=' w-full h-full flex flex-col items-center '>
+          <Card className='w-1/2 h-1/3 bg-white/90 mx-auto  my-auto border border-emerald-300/50 rounded-2xl shadow-lg '>
+            <CardHeader>
+              <CardTitle className='underline text-xl text-emerald-500 font-semibold'>Add a new number:</CardTitle>
+              <CardAction>
+                <Button onClick={isClose} className='bg-emerald-600'> <X className='' /> </Button>
+              </CardAction>
+            </CardHeader>
+            <CardContent className='px-8' >
+              <label className='text-gray-600 pl-1' >Number:</label>
+              <Input className='my-2 focus-visible:ring-emerald-500' value={WhatsappNum} onChange={(e) => setWhatsappNum(e.target.value)} type='tel' name='phoneNumber' placeholder='+212 6111111111' />
+
+            </CardContent>
+            <CardFooter className='flex justify-end'>
+              <Button onClick={saveNumber} className='bg-emerald-600'>create chatBot</Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
+
+      , document.body)}
+  </> : null
+
+
+}
+
+//-----------------Profiles component---------------------------------------------//
+//-------------------------------------------------------------------------------//
+
+interface WhatsAppNumber {
+  number: string;
+  linked: boolean;
+}
+
+export default function Home() {
+  const [startSession, setStartSession] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [whatsappNum, setWhatsappNum] = useState<WhatsAppNumber[]>([]);
+  useEffect(() => {
+    (async () => {
+      await api.get('/numbers/1').then(
+        ({ status, data }) => {
+          status === 201 && setWhatsappNum(data.data)
+        }
+      )
+    })()
+  }, [])
 
   return (
     <div className=" bg-white/10 w-full h-[80%] mx-auto  mt-20 p-15 backdrop-blur-lg rounded-2xl shadow-2xl overflow-hidden border border-white/20  md:p-8">
@@ -163,13 +247,31 @@ export default function Home() {
           <p className="text-white">Connect and manage your Whatsapp Business accounts.</p>
         </span>
 
-        <Button onClick={() => setStartSession(true)} className="bg-emerald-600">
-          Add Profile
-        </Button>
-        <LinkedSession startSession={startSession} isClose={() => setStartSession(false)} />
       </div>
 
-      <div className="w-full h-[1px] bg-white/20 backdrop-blur-lg mt-4 " ></div>
+      <div className="w-full h-[1px] bg-white/20 backdrop-blur-lg my-4 " ></div>
+      <div className="w-full pt-5 flex flex-wrap gap-4 ">
+        {
+          whatsappNum.map((session, idx) => (
+            <div key={idx} className="w-1/3 p-3 flex flex-col  h-25 content-center bg-white/80 backdrop-brightness-50 border border-emerald-400 rounded-xl shadow-lg">
+              <div className=" flex justify-between">
+
+                <p className="ml-3 text-emerald-500 font-medium">{session.number}</p>
+                <p className={`ml-3 mb-3 ${session.linked ? 'text-emerald-500' : 'text-red-500'}  font-medium`}>{session.linked ? 'Online' : 'Offline'}</p>
+              </div>
+              <Button onClick={() => { setStartSession(session.number.trimEnd()) }} className="bg-emerald-600" >Connected</Button>
+              <LinkedSession startSession={startSession === session.number.trimEnd()} isClose={() => setIsOpen(false)} sessionId={session.number.trimEnd()} />
+            </div>
+          ))
+        }
+        <div className="w-1/3 p-3 flex items-center h-25 content-center bg-white/80 backdrop-brightness-50 border border-emerald-400 rounded-xl shadow-lg">
+          <div onClick={() => setIsOpen(true)} className="w-15 ml-4 p-2 bg-white/10 backdrop-blur-lg h-15 border border-emerald-400 rounded-full">
+            <PlusIcon className="size-10 text-emerald-500 font-medium" />
+          </div>
+          <p className="ml-3 text-emerald-500 font-medium">Add a profile...</p>
+        </div>
+        <NumberForm isOpen={isOpen} isClose={() => setIsOpen(false)} />
+      </div>
     </div >
   );
 }

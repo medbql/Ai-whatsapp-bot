@@ -1,4 +1,4 @@
-import { Calendar, Home, Inbox, Search, Settings, User } from "lucide-react"
+import { BrainCog, Calendar, Home, Inbox, LucideWashingMachine, Search, Settings, User } from "lucide-react"
 
 import {
   Sidebar,
@@ -18,6 +18,11 @@ const items = [
     title: "Profiles",
     url: "/",
     icon: User,
+  },
+  {
+    title: "ChatBot",
+    url: "/chatBot",
+    icon: BrainCog,
   },
 
 ]
