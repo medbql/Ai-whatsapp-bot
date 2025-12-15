@@ -3,3 +3,4 @@ backend/node_modules
 frontend/.next
 frontend/next-env.d.ts
 backend/auth
+backend/.env
