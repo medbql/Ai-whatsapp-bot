@@ -1,5 +1,6 @@
 import { makeWASocket, useMultiFileAuthState, type WASocket, type ConnectionState } from '@whiskeysockets/baileys';
 import { sessionStatus } from "./server.ts"
+import { logs } from "./utils/logs.ts";
 
 const activeSessions = new Map<string, WASocket>();
 
@@ -19,9 +20,9 @@ export function startSession(sessionId: string): Promise<string | number> {
 
         sock.ev.on('connection.update', async (update: Partial<ConnectionState>) => {
           const { connection, qr, lastDisconnect } = update;
-          console.log('------------------------------------------------------- \n');
-          console.log("Connection status:", connection, "\n");
-          console.log('------------------------------------------------------- \n');
+          logs('------------------------------------------------------- \n');
+          logs(`Connection status: ${connection}  \n`);
+          logs('------------------------------------------------------- \n');
           //if new session we have a new qr code 
           qr && (resolve(qr))
 
@@ -43,32 +44,44 @@ export function startSession(sessionId: string): Promise<string | number> {
   })
 }
 
-export function startBotLogic(sessionId: string): Promise<Boolean> {
-  return new Promise(async (resolve, reject) => {
+export function startBotLogic(sessionId: string): Promise<boolean> {
+  return new Promise((resolve, reject) => {
     try {
       const sock = activeSessions.get(sessionId);
 
       if (!sock) {
-        console.log(`❌ No socket found for session: ${sessionId}`);
+
+        logs(`❌ No socket found for session: ${sessionId}`);
         reject(false)
       } else {
 
-        console.log(`🤖 Starting bot logic for session: ${sessionId}`);
+        logs(`🤖 Starting bot logic for session: ${sessionId}`);
 
-        // ✅ NOW listen for messages
-        sock.ev.on('messages.upsert', async (m) => {
-          console.log('📩 New message received:', m);
+        sock.ev.on('messages.upsert', async ({ messages, type }) => {
+          try {
+            const message = messages?.[0];
 
-          // Your bot logic here
-          const message = m.messages[0] || '';
-          if ((message && !message.key.fromMe) && m.type === 'notify') {
-            console.log(message)
+            if (!message || !message.key) {
+              return;
+            }
+
+            //check if the from my self and if yes set true
+            const isFromMe = message.key?.fromMe ?? true;
+
+            if (!isFromMe && type === 'notify') {
+              //response message
+              const getMessage = message.message?.conversation;
+            }
+          } catch (errMessage) {
+            logs(`Error message proccess in session: ${sessionId}, ${errMessage}`);
           }
-        });
+        })
+
         resolve(true)
       }
     } catch (err) {
-      reject(err)
+      logs(err)
+      reject(false)
     }
 
   })

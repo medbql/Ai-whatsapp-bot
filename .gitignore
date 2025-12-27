@@ -4,3 +4,4 @@ frontend/.next
 frontend/next-env.d.ts
 backend/auth
 backend/.env
+backend/app.log
