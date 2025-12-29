@@ -1,8 +1,13 @@
 import { makeWASocket, useMultiFileAuthState, type WASocket, type ConnectionState } from '@whiskeysockets/baileys';
-import { sessionStatus } from "./server.ts"
+import { sendQrCode, sessionStatus } from "./server.ts"
 import { logs } from "./utils/logs.ts";
+import { Wnums } from './db/connection.ts';
 
 const activeSessions = new Map<string, WASocket>();
+
+//get to know if is request 
+var initialRequest: boolean = false;
+
 
 export function startSession(sessionId: string): Promise<string | number> {
   return new Promise(async (resolve, reject) => {
@@ -23,8 +28,13 @@ export function startSession(sessionId: string): Promise<string | number> {
           logs('------------------------------------------------------- \n');
           logs(`Connection status: ${connection}  \n`);
           logs('------------------------------------------------------- \n');
+
           //if new session we have a new qr code 
-          qr && (resolve(qr))
+          qr && (
+            resolve(qr),
+            initialRequest && sendQrCode(qr, sessionId),
+            initialRequest = true
+          )
 
           //when the connection status is close 
           connection === "close" && (

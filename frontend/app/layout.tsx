@@ -1,7 +1,8 @@
-
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import "./globals.css";
 import { AppSidebar } from "@/src/app-sideBar";
+import { UserStore } from "@/src/contextApi";
+
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode; }>) {
   return (
@@ -12,7 +13,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <AppSidebar />
           <main className="min-h-screen w-full h-screen  p-4 md:p-8">
             <SidebarTrigger />
-            {children}
+            <UserStore>{children}</UserStore>
+
           </main>
 
         </SidebarProvider>

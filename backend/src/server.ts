@@ -5,6 +5,7 @@ import fs from 'fs/promises';
 import wss, { WebSocketServer } from "ws";
 import { Boot, Wnums } from "./db/connection.ts";
 import { logs } from "./utils/logs.ts";
+import { stringify } from "querystring";
 
 
 
@@ -86,7 +87,7 @@ app.get('/numbers/:user_id', async (req, res) => {
   const user_id: number = parseInt(req.params.user_id);
   await Wnums.UsersNums(user_id).then(
     (data) => {
-      res.status(201).json({ data: data.rows })
+      res.status(201).json({ data: data })
     }
   )
 
@@ -121,16 +122,17 @@ const server = app.listen(port, () => { logs('Start the server.......') })
 //--------Handel webSockect connections----------------//
 //----------------------------------------------------//
 
-//open  channel
+//create webSocket server
 const socket = new WebSocketServer({ server });
 
 //store the clients in a map 
 const clients = new Map<string, wss>();
 
-
+//handel connection event
 socket.on('connection', (ws) => {
-  logs(`open channel`);
+  logs(`client connected`);
 
+  //recive message
   ws.on('message', (ms) => {
     try {
       const data = JSON.parse(ms.toString());
@@ -151,10 +153,34 @@ socket.on('connection', (ws) => {
 })
 
 
+//send the QrCode by webSockect channel
+export const sendQrCode = (qr: string, clientId: string): void => {
+  const data = {
+    status: 'notStarted',
+    qr
+  }
+  //get the clinet from clients stored
+  const client = clients.get(clientId);
+
+  //check if client here && and connection status     
+  client?.readyState === wss.OPEN && (
+    console.log('send qr'),
+    client.send(JSON.stringify(data))
+  )
+
+}
+
+//update the status of session
+const linkedSession = async (sessionId: string): Promise<void> => {
+  const dataUpdated = { linked: true };
+  await Wnums.UpdateNum(sessionId, dataUpdated)
+}
+
 export const sessionStatus = async (status: boolean, sessionId: string): Promise<void> => {
   const client = clients.get(sessionId);
 
   (status && client?.readyState === wss.OPEN) && (
+    await linkedSession(sessionId),
     client.send(JSON.stringify({ status: 'open' }))
   )
 

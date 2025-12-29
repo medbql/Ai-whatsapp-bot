@@ -1,5 +1,4 @@
 "use client"
-import { useRouter } from "next/navigation";
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -16,9 +15,9 @@ import { Input } from '@/components/ui/input';
 import { api } from "@/axios/config";
 import {
   NativeSelect,
-  NativeSelectOptGroup,
   NativeSelectOption,
 } from "@/components/ui/native-select"
+import { userData } from '@/src/contextApi';
 
 interface propsForm {
   isOpen: boolean,
@@ -27,46 +26,27 @@ interface propsForm {
 
 
 
-
-interface WhatsAppNumber {
-  id: number,
-  number: string,
-  linked: boolean
-}
 interface form {
   botName: string,
   botModel: string,
   number_id: number
-
 }
 const BotForm = ({ isOpen, isClose }: propsForm) => {
+  const { whatsappNum } = userData();
   const [fields, setFiles] = useState<form>({
     botName: '',
     botModel: '',
     number_id: 0
   })
-  const [whatsappNum, setWhatsappNum] = useState<WhatsAppNumber[]>([]);
-
-  useEffect(() => {
-    (async () => {
-      await api.get('/numbers/1').then(
-        ({ status, data }) => {
-          status === 201 && setWhatsappNum(data.data)
-        }
-      )
-    })()
-  }, [])
-
-
+  console.log(fields)
 
   const handelChange = (e: any) => {
     const name = e.target.name;
     const value = e.target.value;
-
+    console.log(name, value)
     setFiles((prev) => ({ ...prev, [name]: value }))
 
   }
-  console.log(fields)
   const addBoot = async () => {
     try {
       await api.post('/boot', { ...fields }).then(

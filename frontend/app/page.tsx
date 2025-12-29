@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input";
+import { userData } from "@/src/contextApi";
 
 interface linkedSessionProps {
   startSession: boolean,
@@ -31,50 +32,72 @@ const LinkedSession = ({ startSession, isClose, sessionId }: linkedSessionProps)
   const [connected, setConnected] = useState<boolean>(false);
 
   useEffect(() => {
-
-
     // Get the qr code for scan 
     const getQrCode = async () => {
-      console.log('start req...')
       try {
         setIsloading(true);
-
+        
+        //connect to webSocket server
         const ws = new WebSocket('ws://localhost:8080');
 
+        //open connection
         ws.onopen = () => {
-          ws.send(JSON.stringify({
-            sessionId: sessionId
-          }))
-        }
-        ws.onmessage = (event) => {
-          const data = JSON.parse(event.data);
 
+          const clientId = JSON.stringify({sessionId:sessionId})   
+          
+          //send client id
+          ws.send(clientId);
+        }
+
+        //recive messge from the server
+        ws.onmessage = (event) => {
+
+          interface LinkedStatus {
+            status : string,
+            qr?: string
+          }  
+
+          //get the data from the server
+          const data : LinkedStatus = JSON.parse(event.data);
+
+          //check the status of linked device after scannig
           if (data.status === 'open') {
             setConnected(true);
             setQr(null);
 
+            //close connection of the channel with server
             ws?.close();
-
-            setTimeout(() => (setConnected(false), isClose()), 5000)
+            
+            //close the portal after connecting  
+            setTimeout(() => (setConnected(false), isClose()), 1000)
+          }else if (data.status === 'notStarted') {
+            console.log(data)  
+            setQr(data.qr || null)
           }
         };
+
+        //send request to get the qr code 
         await api.post('/linkDevice', { sessionId: sessionId }).then(
           ({ status, data }) => {
-            console.log(status, data)
+            //check the status of response 
             status === 201 ? setQr(data.response.QrCode)
               : status === 200 && isClose()
           }
         )
+
       } catch (error) {
         console.error('Error :', error);
         throw error;
       } finally {
         setIsloading(false)
       }
+    
     };
 
+    //if startSession true call the getQrCode func
     startSession && getQrCode();
-    !startSession && setQr(null)
+    !startSession && setQr(null);//return the qr code empty
+
   }, [startSession])
 
   return startSession && createPortal(
@@ -220,24 +243,13 @@ const NumberForm = ({ isOpen, isClose }: propsForm) => {
 //-----------------Profiles component---------------------------------------------//
 //-------------------------------------------------------------------------------//
 
-interface WhatsAppNumber {
-  number: string;
-  linked: boolean;
-}
 
 export default function Home() {
-  const [startSession, setStartSession] = useState<string | null>(null);
+  const [startSession, setStartSession] = useState<string | boolean | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [whatsappNum, setWhatsappNum] = useState<WhatsAppNumber[]>([]);
-  useEffect(() => {
-    (async () => {
-      await api.get('/numbers/1').then(
-        ({ status, data }) => {
-          status === 201 && setWhatsappNum(data.data)
-        }
-      )
-    })()
-  }, [])
+  const { whatsappNum } = userData();
+
+
 
   return (
     <div className=" bg-white/10 w-full h-[80%] mx-auto  mt-20 p-15 backdrop-blur-lg rounded-2xl shadow-2xl overflow-hidden border border-white/20  md:p-8">
@@ -260,7 +272,7 @@ export default function Home() {
                 <p className={`ml-3 mb-3 ${session.linked ? 'text-emerald-500' : 'text-red-500'}  font-medium`}>{session.linked ? 'Online' : 'Offline'}</p>
               </div>
               <Button onClick={() => { setStartSession(session.number.trimEnd()) }} className="bg-emerald-600" >Connected</Button>
-              <LinkedSession startSession={startSession === session.number.trimEnd()} isClose={() => setIsOpen(false)} sessionId={session.number.trimEnd()} />
+              <LinkedSession startSession={startSession === session.number.trimEnd()} isClose={() => setStartSession(false)} sessionId={session.number.trimEnd()} />
             </div>
           ))
         }

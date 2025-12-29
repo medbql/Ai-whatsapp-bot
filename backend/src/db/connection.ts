@@ -44,6 +44,18 @@ class Curd {
     }
   }
 
+  /**
+   * name
+   */
+  public async Update(id: string, data: object) {
+    const keys = Object.keys(data);
+    const values = Object.values(data);
+
+    const params = keys.map((key, index) => `${key} = ${values[index]}`).join(', ');
+
+    await this.db.query(`UPDATE ${this.table} SET ${params} WHERE  id = $1`, [id]);
+  }
+
   public Delete(id: number) {
     this.db.query(`DELETE FROM ${this.table} WHERE id = $1`, [id]);
   }
@@ -57,8 +69,24 @@ class WhatsappNums extends Curd {
   }
 
   public async UsersNums(user_id: number) {
-    const row = this.db.query(`SELECT * FROM ${this.table} WHERE user_id = $1 `, [user_id]);
-    return row
+    const row = await this.db.query(`SELECT * FROM ${this.table} WHERE user_id = $1 `, [user_id]);
+    return row.rows;
+  }
+
+  public async Nums(numero: string) {
+    logs(numero)
+    const row = await this.db.query(`SELECT * FROM ${this.table} WHERE number =$1`, [numero]);
+    return row.rows;
+  }
+
+  public async UpdateNum(number: string, data: object) {
+    const keys = Object.keys(data);
+    const values = Object.values(data);
+
+    const params = keys.map((key, index) => `${key} = ${values[index]}`).join(', ');
+
+    await this.db.query(`UPDATE ${this.table} SET ${params} WHERE  number = $1`, [number]);
+
   }
 }
 
