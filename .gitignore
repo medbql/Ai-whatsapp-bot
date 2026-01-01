@@ -5,3 +5,4 @@ frontend/next-env.d.ts
 backend/auth
 backend/.env
 backend/app.log
+frontend/.vscode

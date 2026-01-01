@@ -1,6 +1,6 @@
 import { Pool } from "pg";
 import { logs } from "../utils/logs.ts";
-
+import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 
 
@@ -38,7 +38,8 @@ class Curd {
       const data = Object.values(dataForm);
       console.log(data)
       const places = Array.from({ length: data.length }, (_, i) => '$' + (i + 1)).toString();
-      await this.db.query(`INSERT INTO ${this.table} (${Object.keys(dataForm)}) VALUES (${places}) `, data)
+      const resp = await this.db.query(`INSERT INTO ${this.table} (${Object.keys(dataForm)}) VALUES (${places}) `, data)
+      return resp
     } catch (error) {
       logs(error)
     }
@@ -62,6 +63,21 @@ class Curd {
 
 }
 
+class Users extends Curd {
+  constructor(table: string) {
+    super(table)
+  }
+
+  async getByEmail(email: string) {
+    try {
+      const user = await this.db.query(`SELECT * FROM ${this.table} WHERE email = $1 `, [email]);
+      return user.rows;
+    } catch (error) {
+      logs(error)
+    }
+  }
+
+}
 
 class WhatsappNums extends Curd {
   public constructor(table: string) {
@@ -106,7 +122,8 @@ class Boots extends Curd {
 
 }
 
+const User = new Users('Users');
 const Wnums = new WhatsappNums('WhatsappNums');
 const Boot = new Boots('Boots');
 
-export { Wnums, Boot }
+export { Wnums, Boot, User }

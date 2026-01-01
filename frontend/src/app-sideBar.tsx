@@ -16,7 +16,7 @@ import Link from "next/link"
 const items = [
   {
     title: "Profiles",
-    url: "/",
+    url: "/profiles",
     icon: User,
   },
   {
@@ -38,7 +38,7 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <Link href={item.url} >
+                    <Link href={'dashboard' + item.url} >
                       <item.icon />
                       <span>{item.title}</span>
 

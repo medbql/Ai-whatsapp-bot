@@ -3,10 +3,13 @@ import Express from "express";
 import { startBotLogic, startSession } from "./bot.ts";
 import fs from 'fs/promises';
 import wss, { WebSocketServer } from "ws";
-import { Boot, Wnums } from "./db/connection.ts";
+import { Boot, User, Wnums } from "./db/connection.ts";
 import { logs } from "./utils/logs.ts";
 import { stringify } from "querystring";
-
+import bcrypt from "bcryptjs";
+import { error } from "qrcode-terminal";
+import { tokenGeneretor } from "./utils/jwt.ts";
+import { isDate } from "util/types";
 
 
 const app = Express();
@@ -30,6 +33,119 @@ app.use((req, res, next) => {
 
   next();
 });
+
+
+
+//---------------Register-----------------------------//
+//----------------------------------------------------//
+//----------------------------------------------------//
+
+app.post('/register', async (req, res) => {
+
+  try {
+    const { firstName, lastName, email, password } = req.body;
+
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'credinatials required!'
+      })
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const data = {
+      firstname: firstName,
+      lastname: lastName,
+      email,
+      password: hashedPassword
+    }
+    const addUser = await User.Insert(data);
+
+    if (addUser?.rowCount === 1) {
+      res.status(201).json({
+        success: true,
+        message: 'user registered successfully.'
+      })
+
+
+    }
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'server error',
+      error: error
+    })
+  }
+
+})
+
+
+//---------------Login-----------------------------//
+//----------------------------------------------------//
+//----------------------------------------------------//
+
+app.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'credinatials required!'
+      })
+    }
+
+    const user = await User.getByEmail(email);
+
+    if (user?.length !== 1) {
+      return res.status(401).json({
+        error: 'invalid email or passord!'
+      })
+    }
+
+    const hashedPassword = user[0].password;
+
+    const isPasswordValid = await bcrypt.compare(password, hashedPassword);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        error: 'invalid email or passord!'
+      })
+
+    }
+
+    //generete token
+    const token = tokenGeneretor(user[0].id);
+    console.log(token)
+    res.status(200).json({
+      messge: 'login successfully.',
+      user: {
+        id: user[0].id,
+        email: user[0].email,
+        token
+      }
+
+    })
+
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'server error',
+      error: error
+    })
+
+  }
+
+
+})
+
+
+
+
+
+
 
 
 
