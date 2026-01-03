@@ -1,7 +1,6 @@
 import { makeWASocket, useMultiFileAuthState, type WASocket, type ConnectionState } from '@whiskeysockets/baileys';
-import { sendQrCode, sessionStatus } from "./server.ts"
-import { logs } from "./utils/logs.ts";
-import { Wnums } from './db/connection.ts';
+import { sendQrCode, sessionStatus } from "../controllers/whatsappController.ts"
+import { logs } from "../utils/logs.ts";
 
 const activeSessions = new Map<string, WASocket>();
 

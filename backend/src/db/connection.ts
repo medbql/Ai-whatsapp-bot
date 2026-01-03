@@ -117,7 +117,7 @@ class Boots extends Curd {
                                        FROM ${this.table} AS B
                                        INNER JOIN WhatsappNums AS W ON B.number_id = W.id 
                                        WHERE W.user_id= $1`, [user_id]);
-    return boots
+    return boots.rows
   }
 
 }

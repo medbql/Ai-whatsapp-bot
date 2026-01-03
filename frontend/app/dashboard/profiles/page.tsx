@@ -77,10 +77,10 @@ const LinkedSession = ({ startSession, isClose, sessionId }: linkedSessionProps)
         };
 
         //send request to get the qr code 
-        await api.post('/linkDevice', { sessionId: sessionId }).then(
+        await api.get(`/whatsapp/${sessionId}`).then(
           ({ status, data }) => {
             //check the status of response 
-            status === 201 ? setQr(data.response.QrCode)
+            status === 201 ? setQr(data.QrCode)
               : status === 200 && isClose()
           }
         )
@@ -200,7 +200,7 @@ const NumberForm = ({ isOpen, isClose }: propsForm) => {
   const saveNumber = async (): Promise<void> => {
     try {
       setIsloading(true)
-      WhatsappNum.length === 14 && await api.post('/addNumber', { number: WhatsappNum, user_id: 1 }).then(
+      WhatsappNum.length === 14 && await api.post('/numbers', { number: WhatsappNum, user_id: 1 }).then(
         ({ status }) => {
           status === 201 && isClose()
         }
@@ -248,6 +248,8 @@ export default function Home() {
   const [startSession, setStartSession] = useState<string | boolean | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const { whatsappNum } = userData();
+
+  console.log(whatsappNum);
 
 
 

@@ -33,7 +33,7 @@ const LoginCard = ({isRegister  } : { isRegister : () => void}) =>{
     }
 
     const onSubmit = async () => {
-        await api.post('/login',from).then(
+        await api.post('/auth/login',from).then(
             ({status, data})=>{
                 if (status === 200) {
                     localStorage.setItem('Token', data.user.token);
@@ -110,7 +110,7 @@ const RegisterCard = ({islogin}:{islogin : () => void}) =>{
     }
 
     const onSubmit = async () =>{
-        await api.post('/register',from).then(
+        await api.post('/auth/register',from).then(
             ({status, data})=>{
                 status === 201 && islogin();
             }

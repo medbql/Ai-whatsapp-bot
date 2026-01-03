@@ -1,6 +1,6 @@
 "use client"
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Card,
@@ -40,7 +40,7 @@ const BotForm = ({ isOpen, isClose }: propsForm) => {
   })
   console.log(fields)
 
-  const handelChange = (e: any) => {
+  const handelChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const name = e.target.name;
     const value = e.target.value;
     console.log(name, value)
@@ -49,7 +49,7 @@ const BotForm = ({ isOpen, isClose }: propsForm) => {
   }
   const addBoot = async () => {
     try {
-      await api.post('/boot', { ...fields }).then(
+      await api.post('/boots', { ...fields }).then(
         ({ status }) => status === 201 && isClose()
       )
     } catch (error) {
@@ -118,9 +118,10 @@ const ChatBot = () => {
       )
     })()
   }, [])
+
   const startBoot = async (sessionId: string): Promise<void> => {
     try {
-      await api.post('/startBoot', { sessionId: sessionId }).then(
+      await api.post('/whatsapp', { sessionId: sessionId }).then(
         ({ status, data }) => {
           status === 201 ? console.log("work") : console.log(data)
         }

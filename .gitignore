@@ -6,3 +6,4 @@ backend/auth
 backend/.env
 backend/app.log
 frontend/.vscode
+frontend/.env
