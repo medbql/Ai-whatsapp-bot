@@ -7,7 +7,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(400).json({
+      res.status(401).json({
         success: false,
         message: 'token not provided.'
       })
@@ -20,7 +20,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
       const decoded = verifyToken(token);
 
       if (!decoded) {
-        res.status(400).json({
+        res.status(401).json({
           success: false,
           message: 'invalid token.'
         })

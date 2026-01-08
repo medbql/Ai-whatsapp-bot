@@ -9,25 +9,38 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarFooter
 } from "@/components/ui/sidebar"
 import Link from "next/link"
+import { userData } from "./authContext"
+import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation";
 
 // Menu items.
 const items = [
   {
     title: "Profiles",
-    url: "/profiles",
+    url: "profiles",
     icon: User,
   },
   {
     title: "ChatBot",
-    url: "/chatBot",
+    url: "chatBot",
     icon: BrainCog,
   },
 
 ]
 
 export function AppSidebar() {
+
+  const {authenticated, isAuthenticetd} = userData();
+  const router  = useRouter();
+
+const logOut = () =>{
+  localStorage.removeItem('Token')
+  isAuthenticetd('false')
+  
+}
   return (
     <Sidebar className="my-5 ml-3 h-[80hv] border overflow-hidden rounded-xl" >
       <SidebarContent className=" bg-gray-400/10 backdrop-blur-lg ">
@@ -38,7 +51,7 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <Link href={'dashboard' + item.url} >
+                    <Link href={item.url} >
                       <item.icon />
                       <span>{item.title}</span>
 
@@ -50,6 +63,11 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <Button onClick={logOut} >
+          Log out
+        </Button>
+      </SidebarFooter>
     </Sidebar>
   )
 }

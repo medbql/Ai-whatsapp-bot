@@ -3,7 +3,6 @@ import { api } from "@/axios/config"
 import { Button } from "@/components/ui/button"
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -11,16 +10,19 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { ChangeEvent, useState } from "react"
+import { ChangeEvent, useEffect, useState } from "react"
 import { useRouter } from "next/navigation";
+import { userData } from "@/src/authContext"
+
+
 
 const LoginCard = ({isRegister  } : { isRegister : () => void}) =>{
     interface FormState{
         email : string;
         password : string;
     }
-  
-    const router = useRouter();
+   const {isAuthenticetd} = userData();
+const router = useRouter();
 
     const [from, setForm] = useState<FormState>({
         email : '',
@@ -37,6 +39,7 @@ const LoginCard = ({isRegister  } : { isRegister : () => void}) =>{
             ({status, data})=>{
                 if (status === 200) {
                     localStorage.setItem('Token', data.user.token);
+                    isAuthenticetd('true')
                     router.push('/dashboard')
                 };
             }
@@ -180,7 +183,16 @@ const RegisterCard = ({islogin}:{islogin : () => void}) =>{
 
 export default function LoginPage() {
    const [isLogin, setLogin] = useState<boolean>(true); 
-  return (
+  const {authenticated} = userData();
+  const router = useRouter();
+
+  useEffect(()=>{
+    if (authenticated === 'true') {
+      router.replace('/dashboard')
+    }
+  },[authenticated])
+
+   return (
     <>
     {  isLogin ? <LoginCard isRegister={()=> setLogin(false)} /> : <RegisterCard islogin={() => setLogin(true)}  />}
   </>

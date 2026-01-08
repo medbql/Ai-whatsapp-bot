@@ -14,7 +14,9 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input";
-import { userData } from "@/src/contextApi";
+import { userData } from "@/src/authContext";
+
+
 
 interface linkedSessionProps {
   startSession: boolean,
@@ -249,7 +251,7 @@ export default function Home() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const { whatsappNum } = userData();
 
-  console.log(whatsappNum);
+
 
 
 
