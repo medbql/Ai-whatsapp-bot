@@ -1,15 +1,24 @@
 //import modules
-import Express from "express";
-import { startSession } from "./bot.ts";
+import Express, { type Application, type NextFunction } from "express";
+import { logs } from "./utils/logs.ts";
+import { authRouter } from "./routes/auth.ts";
+import { numbersRouter } from "./routes/numbers.ts";
+import { bootsRouter } from "./routes/boots.ts";
+import { whatsappRouter } from "./routes/whatsapp.ts";
+import { setupWebSockect } from "./controllers/whatsappController.ts";
+import { authMiddleware } from "./middleware/authMiddleware.ts";
 
 
-const app = Express();
+const app: Application = Express();
 const port: Number = 8080;
 
+
 app.use(Express.json())
+app.use(Express.urlencoded())
+
 // Manual CORS middleware
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*'); // Allow all origins
+  res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // Allow all origins
 
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
@@ -23,16 +32,26 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post('/linkDevice', async (req, res) => {
-  console.log('Get requeste...')
-  const { sessionName } = req.body;
 
-  let code: any;
-  await startSession(sessionName).then((res => code = res))
-    .catch(err => code = err)
+//routes
+app.use('/api/auth', authRouter)
+app.use('/api/numbers', authMiddleware, numbersRouter)
+app.use('/api/boots', authMiddleware, bootsRouter)
+app.use('/api/whatsapp', authMiddleware, whatsappRouter)
 
-  res.status(200).json({ code })
 
-})
 
-app.listen(port, () => { console.log('Start the server.......') })
+
+
+const server = app.listen(port, () => { logs('Start the server.......') })
+
+//setUp webSockect
+setupWebSockect(server)
+
+
+
+
+
+
+
+
