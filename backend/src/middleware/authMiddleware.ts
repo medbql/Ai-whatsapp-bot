@@ -1,5 +1,5 @@
 import { type Request, type Response, type NextFunction } from "express";
-import { verifyToken } from "../services/jwt.ts";
+import { verifyAccessToken } from "../services/jwt.ts";
 
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -17,14 +17,24 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     const token = authHeader.split(' ')[1];
 
     if (token) {
-      const decoded = verifyToken(token);
+      const tokenVerification = verifyAccessToken(token);
 
-      if (!decoded) {
+      if (tokenVerification) {
+
+        if (!tokenVerification.success) {
+          res.status(401).json({
+            success: false,
+            message: tokenVerification.errorType
+          })
+        }
+
+      } else {
         res.status(401).json({
           success: false,
-          message: 'invalid token.'
+          message: 'INVALID'
         })
       }
+
 
       next()
 

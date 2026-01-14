@@ -38,7 +38,7 @@ const router = useRouter();
         await api.post('/auth/login',from).then(
             ({status, data})=>{
                 if (status === 200) {
-                    localStorage.setItem('Token', data.user.token);
+                    localStorage.setItem('Token', data.user.accessToken);
                     isAuthenticetd('true')
                     router.push('/dashboard')
                 };

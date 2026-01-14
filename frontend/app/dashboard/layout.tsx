@@ -12,7 +12,6 @@ export default function DashboardLayout({ children} : { children : ReactNode}) {
 
   useEffect(()=>{
      if (authenticated === 'false' ) {
-          console.log('bdloh')
           router.replace('/auth')
     } 
   },[authenticated])

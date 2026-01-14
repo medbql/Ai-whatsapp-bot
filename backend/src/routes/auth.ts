@@ -1,7 +1,7 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { User } from "../db/connection.ts";
-import { tokenGeneretor } from "../services/jwt.ts";
+import { accessTokenGeneretor, refreshTokenGeneretor, verifyRefrshToken } from "../services/jwt.ts";
 
 //instance router
 export const authRouter = Router();
@@ -88,14 +88,22 @@ authRouter.post('/login', async (req, res) => {
     }
 
     //if the password correct we generete token
-    const token = tokenGeneretor(user[0].id);
+    const accessToken = accessTokenGeneretor(user[0].id);
+    const refreshToken = refreshTokenGeneretor(user[0].id);
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      //secure: true, in the prod 
+      path: '/'
+    })
+
 
     res.status(200).json({
       messge: 'login successfully.',
       user: {
         id: user[0].id,
         email: user[0].email,
-        token
+        accessToken
       }
     })
 
@@ -108,5 +116,41 @@ authRouter.post('/login', async (req, res) => {
 
   }
 })
+
+/*
+ * Refresh Endpoint
+ */
+authRouter.post('/refresh', async (req, res) => {
+  const refreshToen = req.cookies.refreshToken;
+  try {
+    if (refreshToen) {
+
+      const tokenVerification = verifyRefrshToken(refreshToen);
+
+      if (tokenVerification) {
+        const user_id = tokenVerification.id;
+        const newAccessToken = accessTokenGeneretor(user_id);
+
+        res.status(200).json({
+          accessToken: newAccessToken
+        })
+      } else {
+        res.status(401).json({
+          success: false,
+          message: 'invalid token'
+        })
+      }
+
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'authentication failed!'
+    })
+
+  }
+})
+
+
 
 

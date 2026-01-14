@@ -7,6 +7,7 @@ import { bootsRouter } from "./routes/boots.ts";
 import { whatsappRouter } from "./routes/whatsapp.ts";
 import { setupWebSockect } from "./controllers/whatsappController.ts";
 import { authMiddleware } from "./middleware/authMiddleware.ts";
+import cookieParser from "cookie-parser";
 
 
 const app: Application = Express();
@@ -15,6 +16,7 @@ const port: Number = 8080;
 
 app.use(Express.json())
 app.use(Express.urlencoded())
+app.use(cookieParser())
 
 // Manual CORS middleware
 app.use((req, res, next) => {
