@@ -46,23 +46,30 @@ export const UserStore = ({ children }: { children: ReactNode }) => {
   }
 
 api.interceptors.response.use(function onFulfilled(response) {
-    // Any status code that lie within the range of 2xx cause this function to trigger
-    // Do something with response data
+    const newToken  = response.headers['x-new-access-token'];
+    
+    if (newToken) {
+      localStorage.setItem('Token', newToken);
+      api.defaults.headers.common['Authorization'] =  'Bearer'+newToken;
+    }
 
-    return response;
+     return response;
+    
   }, function onRejected(error) {
-    // Any status codes that falls outside the range of 2xx cause this function to trigger
-    // Do something with response error
     if (error.status === 401) {
 
-      if (error.response.data.message === "EXPIRED") { 
+      if (error.response.data.message === "EXPIRED") {
+
+            //send request to refresh token
             const response =   api.post('/auth/refresh');
+
             response.then(({status, data})=>{
               if (status === 200) {
                  localStorage.setItem('Token', data.accessToken )
                  isAuthenticetd('true')
               }
             }).catch((error)=>{
+              console.log('err', error)
               isAuthenticetd('false')
             })
       }else{
@@ -74,12 +81,12 @@ api.interceptors.response.use(function onFulfilled(response) {
   });
 
   
-      const value: ContextType = {
+const value: ContextType = {
       whatsappNum,
       setWhatsappNum: () => { },
       authenticated,
       isAuthenticetd
-    }
+   }
 
   
 

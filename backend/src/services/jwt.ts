@@ -22,7 +22,7 @@ const refreshToken = process.env.REFRESH_TOKEN_SECRET;
 
 const accessTokenGeneretor = (user_id: number) => {
   const playload: JwtPayload = {
-    id: user_id
+    id: user_id,
   }
 
   if (!accessToken) {
@@ -69,7 +69,7 @@ const verifyAccessToken = (token: string): VerifyResult | null => {
 
     }
   } catch (error: any) {
-
+    console.log(error.name)
     if (error.name === 'TokenExpiredError') {
       return {
         success: false,

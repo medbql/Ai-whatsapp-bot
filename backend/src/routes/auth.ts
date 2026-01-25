@@ -2,6 +2,14 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { User } from "../db/connection.ts";
 import { accessTokenGeneretor, refreshTokenGeneretor, verifyRefrshToken } from "../services/jwt.ts";
+import dotenv from "dotenv";
+import { Interface } from "readline";
+
+
+dotenv.config();
+
+
+
 
 //instance router
 export const authRouter = Router();
@@ -56,6 +64,7 @@ authRouter.post('/register', async (req, res) => {
 //---------------Login Endpoint-----------------------------//
 authRouter.post('/login', async (req, res) => {
   try {
+
     //destructing the params from the request
     const { email, password } = req.body;
 
@@ -67,16 +76,27 @@ authRouter.post('/login', async (req, res) => {
       })
     }
 
+    interface User {
+      id: number;
+      firstname: string;
+      lastname: string;
+      email: string;
+      password: string;
+
+    }
+
     //get the user by email
-    const user = await User.getByEmail(email);
+    const user: User = await User.getByEmail(email);
+
+
 
     //check if exist
-    if (user?.length !== 1) {
+    if (!user) {
       return res.status(401).json({ error: 'invalid email or passord!' })
     }
 
     //get the hashed Password
-    const hashedPassword = user[0].password;
+    const hashedPassword = user.password;
 
     //compare the password by the hashed password
     const isPasswordValid = await bcrypt.compare(password, hashedPassword);
@@ -88,12 +108,14 @@ authRouter.post('/login', async (req, res) => {
     }
 
     //if the password correct we generete token
-    const accessToken = accessTokenGeneretor(user[0].id);
-    const refreshToken = refreshTokenGeneretor(user[0].id);
+    const accessToken = accessTokenGeneretor(user.id);
+    const refreshToken = refreshTokenGeneretor(user.id);
+
+    const isProd = process.env.APP_ENV === 'prod';
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      //secure: true, in the prod 
+      secure: isProd,
       path: '/'
     })
 
@@ -101,8 +123,8 @@ authRouter.post('/login', async (req, res) => {
     res.status(200).json({
       messge: 'login successfully.',
       user: {
-        id: user[0].id,
-        email: user[0].email,
+        id: user.id,
+        email: user.email,
         accessToken
       }
     })
@@ -121,11 +143,12 @@ authRouter.post('/login', async (req, res) => {
  * Refresh Endpoint
  */
 authRouter.post('/refresh', async (req, res) => {
-  const refreshToen = req.cookies.refreshToken;
-  try {
-    if (refreshToen) {
+  const refreshToken = req.cookies.refreshToken;
 
-      const tokenVerification = verifyRefrshToken(refreshToen);
+  try {
+    if (refreshToken) {
+
+      const tokenVerification = verifyRefrshToken(refreshToken);
 
       if (tokenVerification) {
         const user_id = tokenVerification.id;
@@ -141,6 +164,11 @@ authRouter.post('/refresh', async (req, res) => {
         })
       }
 
+    } else {
+      res.status(401).json({
+        success: false,
+        message: 'authentication failed'
+      })
     }
   } catch (error) {
     res.status(500).json({
