@@ -15,19 +15,30 @@ interface ContextType {
   whatsappNum: WhatsAppNumber[],
   setWhatsappNum: () => void,
   authenticated: string,
-   isAuthenticetd: (auth : string) => void
+   isAuthenticetd: (auth : string) => void,
+   logout: () => void
 }
 const UserContext = createContext<ContextType>({
   whatsappNum: [],
   setWhatsappNum: () => { },
   authenticated :  'false',
-  isAuthenticetd: (auth : string) =>{},  
+  isAuthenticetd: (auth : string) =>{}, 
+  logout: ()=> { }, 
 })
 
 export const UserStore = ({ children }: { children: ReactNode }) => {
   const [whatsappNum, setWhatsappNum] = useState<WhatsAppNumber[]>([]);
   const [authenticated, _setAuthenticeted] = useState(localStorage.getItem('auth'));
 
+  const router = useRouter();
+
+  const logout = async ()=>{
+      await api.post('/auth/logout').then(() =>{
+          localStorage.removeItem('Token');
+         isAuthenticetd('false')
+          router.replace('/auth')
+      })
+  }
 
   useEffect(() => {
     (async () => {
@@ -55,23 +66,44 @@ api.interceptors.response.use(function onFulfilled(response) {
 
      return response;
     
-  }, function onRejected(error) {
+  }, async function onRejected(error) {
     if (error.status === 401) {
-
+      //take the original request
+      const originalRequest = error.config; 
+      
       if (error.response.data.message === "EXPIRED") {
+            return new Promise(async (resolve,reject)=>{
+                  //send request to refresh token
+                  const {status, data} = await  api.post('/auth/refresh');
 
-            //send request to refresh token
-            const response =   api.post('/auth/refresh');
+                  if (status === 200) {
+                    //get token
+                    const newToken = data.accessToken;
+                      
+                    if (newToken) {
+                       //return the new tokrn
+                        resolve(newToken)  
+                    }                    
+                  }else{
+                    reject()
+                  }
 
-            response.then(({status, data})=>{
-              if (status === 200) {
-                 localStorage.setItem('Token', data.accessToken )
-                 isAuthenticetd('true')
-              }
-            }).catch((error)=>{
-              console.log('err', error)
+            }).then((token)=>{
+              //update the token in the localStorage 
+              localStorage.setItem('Token', token);
+
+              //update tokrn for futue request
+              api.defaults.headers.common['Authorization'] = 'Bearer' + token;
+
+              //update the token for the original request
+              originalRequest.headers.common['Authorization'] = 'Bearer' + token;
+
+              //resend request with the new token
+              return api(originalRequest)
+            }).catch(()=>{
               isAuthenticetd('false')
             })
+
       }else{
       isAuthenticetd('false')
       }     
@@ -85,7 +117,8 @@ const value: ContextType = {
       whatsappNum,
       setWhatsappNum: () => { },
       authenticated,
-      isAuthenticetd
+      isAuthenticetd,
+      logout
    }
 
   

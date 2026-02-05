@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { User } from "../db/connection.ts";
 import { accessTokenGeneretor, refreshTokenGeneretor, verifyRefrshToken } from "../services/jwt.ts";
 import dotenv from "dotenv";
-import { Interface } from "readline";
+import { logs } from "../utils/logs.ts";
 
 
 dotenv.config();
@@ -179,6 +179,23 @@ authRouter.post('/refresh', async (req, res) => {
   }
 })
 
+/*
+ * LogOut Endpoint
+ */
 
+authRouter.post('/logout', (req, res) => {
+  try {
+    //delete the reafresh token 
+    res.clearCookie('refreshToken');
 
+    res.status(200).json({
+      message: 'user logout seccussefly.'
+    });
+  } catch (err) {
+    logs(err)
+    res.status(500).json({
+      err: 'error in the log out.'
+    })
+  }
+})
 
