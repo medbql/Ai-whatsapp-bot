@@ -7,13 +7,12 @@ import { useRouter } from "next/navigation";
 
 
 export default function DashboardLayout({ children} : { children : ReactNode}) {
-  const {authenticated} = userData();   
+  const {authenticated,logout} = userData();   
   const router = useRouter();
 
   useEffect(()=>{
      if (authenticated === 'false' ) {
-          console.log('bdloh')
-          router.replace('/auth')
+        logout()
     } 
   },[authenticated])
   

@@ -1,6 +1,5 @@
 import { Pool } from "pg";
 import { logs } from "../utils/logs.ts";
-import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 
 
@@ -71,7 +70,7 @@ class Users extends Curd {
   async getByEmail(email: string) {
     try {
       const user = await this.db.query(`SELECT * FROM ${this.table} WHERE email = $1 `, [email]);
-      return user.rows;
+      return user.rows[0];
     } catch (error) {
       logs(error)
     }

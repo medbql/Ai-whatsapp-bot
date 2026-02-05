@@ -7,6 +7,7 @@ import { bootsRouter } from "./routes/boots.ts";
 import { whatsappRouter } from "./routes/whatsapp.ts";
 import { setupWebSockect } from "./controllers/whatsappController.ts";
 import { authMiddleware } from "./middleware/authMiddleware.ts";
+import cookieParser from "cookie-parser";
 
 
 const app: Application = Express();
@@ -15,6 +16,7 @@ const port: Number = 8080;
 
 app.use(Express.json())
 app.use(Express.urlencoded())
+app.use(cookieParser())
 
 // Manual CORS middleware
 app.use((req, res, next) => {
@@ -23,7 +25,7 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
-
+  res.header('Access-Control-Expose-Headers', 'X-New-Access-Token'); // ✅ Fixed!
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);

@@ -33,14 +33,10 @@ const items = [
 
 export function AppSidebar() {
 
-  const {authenticated, isAuthenticetd} = userData();
-  const router  = useRouter();
+  const {logout} = userData();
 
-const logOut = () =>{
-  localStorage.removeItem('Token')
-  isAuthenticetd('false')
-  
-}
+
+
   return (
     <Sidebar className="my-5 ml-3 h-[80hv] border overflow-hidden rounded-xl" >
       <SidebarContent className=" bg-gray-400/10 backdrop-blur-lg ">
@@ -64,7 +60,7 @@ const logOut = () =>{
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <Button onClick={logOut} >
+        <Button onClick={()=>logout()} >
           Log out
         </Button>
       </SidebarFooter>
