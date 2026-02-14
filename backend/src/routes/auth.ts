@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { User } from "../db/connection.ts";
 import { accessTokenGeneretor, refreshTokenGeneretor, verifyRefrshToken } from "../services/jwt.ts";
 import dotenv from "dotenv";
+import axios from "axios";
 import { logs } from "../utils/logs.ts";
 
 
@@ -196,6 +197,111 @@ authRouter.post('/logout', (req, res) => {
     res.status(500).json({
       err: 'error in the log out.'
     })
+  }
+})
+
+/**
+ * Redirect User to Google OAuth consent screen 
+ */
+authRouter.get('/google', (req, res) => {
+  const state = Math.random().toString(36).substring(7);
+
+  const isProd = process.env.APP_ENV === 'prod';
+  res.cookie('state', state, {
+    httpOnly: true,
+    secure: isProd,
+    path: '/'
+  })
+
+  const params = new URLSearchParams({
+    client_id: process.env.GOOGLE_CLIENT_ID || '',
+    redirect_uri: 'http://localhost:8080/api/auth/google/callback',
+    response_type: 'code',
+    access_type: 'offline',
+    scope: 'openid profile email',
+    state: state,
+    prompt: 'consent'
+
+  })
+
+
+  res.redirect(`https://accounts.google.com/o/oauth2/auth?${params}`)
+})
+
+
+authRouter.get('/google/callback', async (req, res) => {
+  try {
+    const { code, state } = req.query;
+
+    const googleState = req.cookies.state;
+
+    if (state === googleState) {
+
+      res.clearCookie('state')
+
+      const tokenResponse = await axios.post("https://oauth2.googleapis.com/token", {
+        code,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: 'http://localhost:8080/api/auth/google/callback',
+        grant_type: 'authorization_code'
+      })
+
+      const { access_token } = tokenResponse.data
+
+      const userResponse = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo',
+        { headers: { Authorization: `Bearer ${access_token}` } })
+
+      const userInfo = userResponse.data;
+
+      if (userInfo) {
+
+        const providerId = await User.getByProviderId(userInfo.id);
+
+        if (!providerId) {
+
+          const addUser = await User.Insert({
+            firstname: userInfo.given_name,
+            lastname: userInfo.family_name,
+            email: userInfo.email,
+            password: null,
+            auth_provider: 'google',
+            provider_id: userInfo.id
+          })
+
+        }
+
+        //get the user by email
+        const user = await User.getByEmail(userInfo.email);
+
+        const oauthToken = accessTokenGeneretor(user.id);
+        const refreshToken = refreshTokenGeneretor(user.id);
+
+        const isProd = process.env.APP_ENV === 'prod';
+
+        res.cookie('oauthToken', oauthToken, {
+          httpOnly: true,
+          secure: isProd,
+          path: '/'
+        })
+
+        res.cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          secure: isProd,
+          path: '/'
+        })
+
+
+        res.redirect('http://localhost:3000/dashboard')
+
+      }
+
+
+    }
+
+
+  } catch (error) {
+
   }
 })
 

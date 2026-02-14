@@ -58,9 +58,10 @@ export const UserStore = ({ children }: { children: ReactNode }) => {
 
 api.interceptors.response.use(function onFulfilled(response) {
     const newToken  = response.headers['x-new-access-token'];
-    
+    console.log(newToken)
     if (newToken) {
       localStorage.setItem('Token', newToken);
+      isAuthenticetd('true')
       api.defaults.headers.common['Authorization'] =  'Bearer'+newToken;
     }
 
@@ -104,9 +105,7 @@ api.interceptors.response.use(function onFulfilled(response) {
               isAuthenticetd('false')
             })
 
-      }else{
-      isAuthenticetd('false')
-      }     
+      }
     }else{
       return error
     }

@@ -22,7 +22,7 @@ const LoginCard = ({isRegister  } : { isRegister : () => void}) =>{
         password : string;
     }
    const {isAuthenticetd} = userData();
-const router = useRouter();
+   const router = useRouter();
 
     const [from, setForm] = useState<FormState>({
         email : '',
@@ -44,6 +44,10 @@ const router = useRouter();
                 };
             }
         )
+    }
+
+    const singInGoogle = () =>{
+        window.location.href = 'http://localhost:8080/api/auth/google'
     }
 
     return(
@@ -86,7 +90,9 @@ const router = useRouter();
         <Button onClick={ isRegister}  variant="link" className="w-full">
             Register        
         </Button>
-      
+         <Button  onClick={singInGoogle}  className="w-full">
+            Sing Up by Google        
+        </Button>  
       </CardFooter>
     </Card>
     )
@@ -175,7 +181,7 @@ const RegisterCard = ({islogin}:{islogin : () => void}) =>{
         <Button onClick={islogin} variant="link" className="w-full">
             Login       
         </Button>
-      
+
       </CardFooter>
     </Card>
  )

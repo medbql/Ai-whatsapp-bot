@@ -23,7 +23,7 @@ class Curd {
 
   public async All() {
     const allData = await this.db.query(`SELECT * FROM ${this.table}`);
-    return allData
+    return allData.rows
   }
 
   public Row(id: number) {
@@ -74,6 +74,16 @@ class Users extends Curd {
     } catch (error) {
       logs(error)
     }
+  }
+
+  async getByProviderId(providerId: string) {
+    return new Promise(async (resolve, reject) => {
+      const user = await this.db.query(`SELECT * FROM ${this.table} WHERE provider_id = $1`, [providerId]);
+
+      if (user) {
+        resolve(user.rows[0])
+      }
+    })
   }
 
 }
