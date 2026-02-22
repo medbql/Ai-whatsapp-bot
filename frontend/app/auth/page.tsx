@@ -15,7 +15,14 @@ import { useRouter } from "next/navigation";
 import { userData } from "@/src/authContext"
 
 
-
+/**
+ * Login card Component
+ * 
+ * @param {Object} props
+ * @param {()=> void} props.isRegister -navigate to register card 
+*
+* @returns {JSX.element} -card containing login form 
+ */
 const LoginCard = ({isRegister  } : { isRegister : () => void}) =>{
     interface FormState{
         email : string;
@@ -40,7 +47,7 @@ const LoginCard = ({isRegister  } : { isRegister : () => void}) =>{
                 if (status === 200) {
                     localStorage.setItem('Token', data.user.accessToken);
                     isAuthenticetd('true')
-                    router.push('/dashboard')
+                    router.push('/dashboard')           
                 };
             }
         )
@@ -51,16 +58,16 @@ const LoginCard = ({isRegister  } : { isRegister : () => void}) =>{
     }
 
     return(
- <Card className="w-1/4 m-auto mt-20">
-      <CardHeader>
-        <CardTitle>Login to your account</CardTitle>
-        <CardDescription>
-          Enter your email below to login to your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-  <form method="post"  >
-          <div className="flex flex-col gap-6">
+      <Card className="w-1/4 m-auto mt-20">
+          <CardHeader>
+            <CardTitle>Login to your account</CardTitle>
+            <CardDescription>
+              Enter your email below to login to your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+          <form method="post"  >
+              <div className="flex flex-col gap-6">
             <div className="grid gap-2">
               <label htmlFor="email">Email</label>
               <Input
@@ -74,10 +81,7 @@ const LoginCard = ({isRegister  } : { isRegister : () => void}) =>{
               />
             </div>
             <div className="grid gap-2">
-             
-                <label htmlFor="password">Password</label>
-              
-     
+                <label htmlFor="password">Password</label>     
               <Input id="password" type="password" name="password" value={from.password} onChange={handelChange} required />
             </div>
           </div>

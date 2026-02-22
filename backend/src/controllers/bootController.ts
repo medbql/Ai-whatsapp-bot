@@ -15,8 +15,10 @@ async function show(req: Request, res: Response): Promise<void> {
       //get boots from database
       const userBoots = await Boot.Nums_Join(userId)
 
+
       //check if data exist 
-      if (userBoots.length) {
+      if (userBoots) {
+        console.log('sned it ....................')
         res.status(201).json({ data: userBoots })
       }
     }

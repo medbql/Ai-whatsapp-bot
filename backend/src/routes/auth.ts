@@ -4,6 +4,7 @@ import { User } from "../db/connection.ts";
 import { accessTokenGeneretor, refreshTokenGeneretor, verifyRefrshToken } from "../services/jwt.ts";
 import dotenv from "dotenv";
 import axios from "axios";
+import crypto from "crypto";
 import { logs } from "../utils/logs.ts";
 
 
@@ -14,6 +15,9 @@ dotenv.config();
 
 //instance router
 export const authRouter = Router();
+
+
+const pendingTokens = new Map<string, { accessToken: string }>();
 
 //---------------Register Endpoint-----------------------------//
 authRouter.post('/register', async (req, res) => {
@@ -105,7 +109,6 @@ authRouter.post('/login', async (req, res) => {
     //response the password is incorecct
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'invalid email or passord!' })
-
     }
 
     //if the password correct we generete token
@@ -214,8 +217,8 @@ authRouter.get('/google', (req, res) => {
   })
 
   const params = new URLSearchParams({
-    client_id: process.env.GOOGLE_CLIENT_ID || '',
-    redirect_uri: 'http://localhost:8080/api/auth/google/callback',
+    client_id: process.env.GOOGLE_CLIENT_ID as string,
+    redirect_uri: process.env.GOOGLE_REDIRECT_URI as string,
     response_type: 'code',
     access_type: 'offline',
     scope: 'openid profile email',
@@ -243,7 +246,7 @@ authRouter.get('/google/callback', async (req, res) => {
         code,
         client_id: process.env.GOOGLE_CLIENT_ID,
         client_secret: process.env.GOOGLE_CLIENT_SECRET,
-        redirect_uri: 'http://localhost:8080/api/auth/google/callback',
+        redirect_uri: process.env.GOOGLE_REDIRECT_URI as string,
         grant_type: 'authorization_code'
       })
 
@@ -274,16 +277,13 @@ authRouter.get('/google/callback', async (req, res) => {
         //get the user by email
         const user = await User.getByEmail(userInfo.email);
 
-        const oauthToken = accessTokenGeneretor(user.id);
+        const accessToken = accessTokenGeneretor(user.id);
         const refreshToken = refreshTokenGeneretor(user.id);
 
         const isProd = process.env.APP_ENV === 'prod';
 
-        res.cookie('oauthToken', oauthToken, {
-          httpOnly: true,
-          secure: isProd,
-          path: '/'
-        })
+        const oneTimeCode = crypto.randomBytes(32).toString('hex');
+        pendingTokens.set(oneTimeCode, { accessToken });
 
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
@@ -291,9 +291,7 @@ authRouter.get('/google/callback', async (req, res) => {
           path: '/'
         })
 
-
-        res.redirect('http://localhost:3000/dashboard')
-
+        res.redirect(`http://localhost:3000/auth/callback?code=${oneTimeCode}`);
       }
 
 
@@ -305,3 +303,30 @@ authRouter.get('/google/callback', async (req, res) => {
   }
 })
 
+authRouter.post('/exchange-token', (req, res) => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({ success: false, message: 'Code is required' });
+    }
+
+    const pendingToken = pendingTokens.get(code);
+
+    if (!pendingToken) {
+      pendingTokens.delete(code);
+      return res.status(401).json({ success: false, message: 'Invalid or expired code' });
+    }
+
+    pendingTokens.delete(code);
+
+    res.json({ success: true, accessToken: pendingToken.accessToken });
+
+  } catch (error) {
+    logs(error)
+    res.status(500).json({
+      err: 'error in the log out.'
+    })
+
+  }
+})
