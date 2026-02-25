@@ -15,14 +15,21 @@ import { useRouter } from "next/navigation";
 import { userData } from "@/src/authContext"
 
 
-
+/**
+ * Login card Component
+ * 
+ * @param {Object} props
+ * @param {()=> void} props.isRegister -navigate to register card 
+*
+* @returns {JSX.element} -card containing login form 
+ */
 const LoginCard = ({isRegister  } : { isRegister : () => void}) =>{
     interface FormState{
         email : string;
         password : string;
     }
    const {isAuthenticetd} = userData();
-const router = useRouter();
+   const router = useRouter();
 
     const [from, setForm] = useState<FormState>({
         email : '',
@@ -40,23 +47,27 @@ const router = useRouter();
                 if (status === 200) {
                     localStorage.setItem('Token', data.user.accessToken);
                     isAuthenticetd('true')
-                    router.push('/dashboard')
+                    router.push('/dashboard')           
                 };
             }
         )
     }
 
+    const singInGoogle = () =>{
+        window.location.href = 'http://localhost:8080/api/auth/google'
+    }
+
     return(
- <Card className="w-1/4 m-auto mt-20">
-      <CardHeader>
-        <CardTitle>Login to your account</CardTitle>
-        <CardDescription>
-          Enter your email below to login to your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-  <form method="post"  >
-          <div className="flex flex-col gap-6">
+      <Card className="w-1/4 m-auto mt-20">
+          <CardHeader>
+            <CardTitle>Login to your account</CardTitle>
+            <CardDescription>
+              Enter your email below to login to your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+          <form method="post"  >
+              <div className="flex flex-col gap-6">
             <div className="grid gap-2">
               <label htmlFor="email">Email</label>
               <Input
@@ -70,10 +81,7 @@ const router = useRouter();
               />
             </div>
             <div className="grid gap-2">
-             
-                <label htmlFor="password">Password</label>
-              
-     
+                <label htmlFor="password">Password</label>     
               <Input id="password" type="password" name="password" value={from.password} onChange={handelChange} required />
             </div>
           </div>
@@ -86,7 +94,9 @@ const router = useRouter();
         <Button onClick={ isRegister}  variant="link" className="w-full">
             Register        
         </Button>
-      
+         <Button  onClick={singInGoogle}  className="w-full">
+            Sing Up by Google        
+        </Button>  
       </CardFooter>
     </Card>
     )
@@ -175,7 +185,7 @@ const RegisterCard = ({islogin}:{islogin : () => void}) =>{
         <Button onClick={islogin} variant="link" className="w-full">
             Login       
         </Button>
-      
+
       </CardFooter>
     </Card>
  )

@@ -188,12 +188,10 @@ const LinkedSession = ({ startSession, isClose, sessionId }: linkedSessionProps)
 //-----------------add Number component-------------------------------------------//
 //-------------------------------------------------------------------------------//
 
-
 interface propsForm {
   isOpen: boolean,
   isClose: () => void,
 }
-
 
 const NumberForm = ({ isOpen, isClose }: propsForm) => {
   const [WhatsappNum, setWhatsappNum] = useState<string>('');
@@ -238,21 +236,14 @@ const NumberForm = ({ isOpen, isClose }: propsForm) => {
 
       , document.body)}
   </> : null
-
-
 }
 
-//-----------------Profiles component---------------------------------------------//
+//-----------------Profiles component-----------------------------------------//
 //-------------------------------------------------------------------------------//
-
-
 export default function Home() {
   const [startSession, setStartSession] = useState<string | boolean | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const { whatsappNum } = userData();
-
-
-
 
 
   return (

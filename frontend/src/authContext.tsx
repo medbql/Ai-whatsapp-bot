@@ -10,7 +10,6 @@ interface WhatsAppNumber {
 }
 
 
-
 interface ContextType {
   whatsappNum: WhatsAppNumber[],
   setWhatsappNum: () => void,
@@ -18,37 +17,40 @@ interface ContextType {
    isAuthenticetd: (auth : string) => void,
    logout: () => void
 }
+
 const UserContext = createContext<ContextType>({
   whatsappNum: [],
   setWhatsappNum: () => { },
   authenticated :  'false',
   isAuthenticetd: (auth : string) =>{}, 
-  logout: ()=> { }, 
+  logout: ()=> { }
 })
 
 export const UserStore = ({ children }: { children: ReactNode }) => {
   const [whatsappNum, setWhatsappNum] = useState<WhatsAppNumber[]>([]);
-  const [authenticated, _setAuthenticeted] = useState(localStorage.getItem('auth'));
-
+  const [authenticated, _setAuthenticeted] = useState<string>(localStorage.getItem('auth')|| 'false');
   const router = useRouter();
+
+
 
   const logout = async ()=>{
       await api.post('/auth/logout').then(() =>{
           localStorage.removeItem('Token');
-         isAuthenticetd('false')
+          isAuthenticetd('false')
           router.replace('/auth')
       })
   }
 
+
   useEffect(() => {
-    (async () => {
-      await api.get('/numbers/1').then(
+      
+    api.get('/numbers/1').then(
         ({ status, data }) => {
           status === 201 && setWhatsappNum(data.data)
         }
       )
-    })()
-  }, [])
+    
+  },[])
 
 
   const isAuthenticetd = (auth : string)=>{
@@ -58,9 +60,9 @@ export const UserStore = ({ children }: { children: ReactNode }) => {
 
 api.interceptors.response.use(function onFulfilled(response) {
     const newToken  = response.headers['x-new-access-token'];
-    
+  
     if (newToken) {
-      localStorage.setItem('Token', newToken);
+      localStorage.setItem('Token', newToken);      
       api.defaults.headers.common['Authorization'] =  'Bearer'+newToken;
     }
 
@@ -79,16 +81,14 @@ api.interceptors.response.use(function onFulfilled(response) {
                   if (status === 200) {
                     //get token
                     const newToken = data.accessToken;
-                      
                     if (newToken) {
                        //return the new tokrn
                         resolve(newToken)  
                     }                    
                   }else{
-                    reject()
+                    reject('error')
                   }
-
-            }).then((token)=>{
+            }).then(async (token)=>{
               //update the token in the localStorage 
               localStorage.setItem('Token', token);
 
@@ -96,21 +96,21 @@ api.interceptors.response.use(function onFulfilled(response) {
               api.defaults.headers.common['Authorization'] = 'Bearer' + token;
 
               //update the token for the original request
-              originalRequest.headers.common['Authorization'] = 'Bearer' + token;
+             originalRequest.headers['Authorization'] = 'Bearer' + token;
 
               //resend request with the new token
-              return api(originalRequest)
-            }).catch(()=>{
+              return await api(originalRequest)
+            }).catch(error =>{
               isAuthenticetd('false')
             })
 
       }else{
-      isAuthenticetd('false')
-      }     
+        isAuthenticetd('false')
+      }
     }else{
       return error
     }
-  });
+});
 
   
 const value: ContextType = {
@@ -118,8 +118,9 @@ const value: ContextType = {
       setWhatsappNum: () => { },
       authenticated,
       isAuthenticetd,
-      logout
-   }
+      logout, 
+  
+}
 
   
 

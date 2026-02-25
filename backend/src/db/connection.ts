@@ -22,20 +22,31 @@ class Curd {
   }
 
   public async All() {
-    const allData = await this.db.query(`SELECT * FROM ${this.table}`);
-    return allData
+    try {
+      const allData = await this.db.query(`SELECT * FROM ${this.table}`);
+      if (!allData.rowCount) {
+        return allData.rows
+      }
+    } catch (error) {
+      logs(error)
+    }
   }
 
-  public Row(id: number) {
-    const row = this.db.query(`SELECT * FROM ${this.table} WHERE id = $1 `, [id]);
-    return row
+  public async Row(id: number) {
+    try {
+      const row = await this.db.query(`SELECT * FROM ${this.table} WHERE id = $1 `, [id]);
+      if (!row.rowCount) {
+        return row
+      }
+
+    } catch (error) {
+      logs(error)
+    }
   }
 
   public async Insert(dataForm: any) {
     try {
-
       const data = Object.values(dataForm);
-      console.log(data)
       const places = Array.from({ length: data.length }, (_, i) => '$' + (i + 1)).toString();
       const resp = await this.db.query(`INSERT INTO ${this.table} (${Object.keys(dataForm)}) VALUES (${places}) `, data)
       return resp
@@ -76,6 +87,18 @@ class Users extends Curd {
     }
   }
 
+  async getByProviderId(providerId: string) {
+    try {
+      const user = await this.db.query(`SELECT * FROM ${this.table} WHERE provider_id = $1`, [providerId]);
+
+      if (!user.rowCount) {
+        return user.rows[0]
+      }
+    } catch (error) {
+      logs(error)
+    }
+  }
+
 }
 
 class WhatsappNums extends Curd {
@@ -89,7 +112,6 @@ class WhatsappNums extends Curd {
   }
 
   public async Nums(numero: string) {
-    logs(numero)
     const row = await this.db.query(`SELECT * FROM ${this.table} WHERE number =$1`, [numero]);
     return row.rows;
   }
@@ -112,11 +134,17 @@ class Boots extends Curd {
   }
 
   public async Nums_Join(user_id: number) {
-    const boots = await this.db.query(`SELECT B.name, B.model, W.number  
+    try {
+      const boots = await this.db.query(`SELECT B.name, B.model, W.number  
                                        FROM ${this.table} AS B
                                        INNER JOIN WhatsappNums AS W ON B.number_id = W.id 
                                        WHERE W.user_id= $1`, [user_id]);
-    return boots.rows
+      if (!boots.rowCount) {
+        return boots.rows
+      }
+    } catch (error) {
+      logs(error)
+    }
   }
 
 }

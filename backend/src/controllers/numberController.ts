@@ -11,12 +11,12 @@ async function show(req: Request, res: Response): Promise<void> {
     if (req.params.user_id) {
 
       const userId: number = parseInt(req.params.user_id);//change the type of user_id to number
-      console.log()
+
       //get numbers from database
       const userNumbers = await Wnums.UsersNums(userId);
 
       //check if data exist 
-      if (userNumbers.length) {
+      if (userNumbers.length >= 0) {
         res.status(201).json({
           data: userNumbers
         })

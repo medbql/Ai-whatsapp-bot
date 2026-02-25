@@ -38,11 +38,10 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
           const restTime = tokenVerification.decoded?.exp - current_date;
 
           if (restTime < expiredTime && restTime <= 60) {
-
             const user_id = tokenVerification.decoded.id;
             const newToken = accessTokenGeneretor(user_id);
 
-            res.setHeader('X-New-Access-Token', newToken)
+            res.setHeader('X-New-Access-Token', newToken);
 
           }
         }
@@ -53,7 +52,6 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
           message: 'INVALID'
         })
       }
-
 
       next()
 
