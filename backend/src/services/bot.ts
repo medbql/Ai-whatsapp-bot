@@ -1,6 +1,6 @@
-import { makeWASocket, useMultiFileAuthState, type WASocket, type ConnectionState } from '@whiskeysockets/baileys';
-import { sendQrCode, sessionStatus } from "../controllers/whatsappController.ts"
-import { logs } from "../utils/logs.ts";
+import { makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, type WASocket, type ConnectionState } from '@whiskeysockets/baileys';
+import { sendQrCode, sessionStatus } from "../controllers/whatsappController.js"
+import { logs } from "../utils/logs.js";
 
 const activeSessions = new Map<string, WASocket>();
 
@@ -14,9 +14,12 @@ export function startSession(sessionId: string): Promise<string | number> {
 
       if (sessionId) {
 
-        const { state, saveCreds } = await useMultiFileAuthState(`auth/${sessionId}`);
+        const { version } = await fetchLatestBaileysVersion();
+
+        const { state, saveCreds } = await useMultiFileAuthState(`./auth/${sessionId}`);
         const sock: WASocket = makeWASocket({
           auth: state,
+          version,
           printQRInTerminal: false
         })
 

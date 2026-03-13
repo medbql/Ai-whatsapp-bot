@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { show, store } from "../controllers/numberController.ts";
+import { show, store } from "../controllers/numberController.js";
 
 
 export const numbersRouter = Router();

@@ -1,9 +1,7 @@
-
 import axios from "axios";
 
-
 export const api = axios.create({
-  baseURL: 'http://localhost:8080/api/',
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -12,8 +10,7 @@ export const api = axios.create({
 
 api.interceptors.request.use((config)=>{
   const token = localStorage.getItem('Token');
-  console.log(token)
-  token && ( config.headers.Authorization = 'Bearer '+ token);
+  if(token){ config.headers.Authorization = 'Bearer '+ token }
   return config;
 })
 

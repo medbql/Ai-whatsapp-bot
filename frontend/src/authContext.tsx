@@ -1,5 +1,5 @@
 "use client"
-import { api } from "@/axios/config";
+import { api } from "@/src/axios/config";
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -28,11 +28,30 @@ const UserContext = createContext<ContextType>({
 
 export const UserStore = ({ children }: { children: ReactNode }) => {
   const [whatsappNum, setWhatsappNum] = useState<WhatsAppNumber[]>([]);
-  const [authenticated, _setAuthenticeted] = useState<string>(localStorage.getItem('auth')|| 'false');
+  const [authenticated, setAuthenticeted] = useState<string>(()=>{
+    if(typeof window === 'undefined') return  'false';
+    return localStorage.getItem('auth') || 'false';
+  });
   const router = useRouter();
 
+const isAuthenticetd = (auth : string)=>{
+    setAuthenticeted(auth)
+    localStorage.setItem('auth',auth)
+  }
+   useEffect(() => {
 
+   (async() =>{
+      await api.get('/numbers/1').then(
+        ({ status, data }) => {
+          status === 201 && setWhatsappNum(data.data)
+        }
+      )
+    })();
 
+    
+  },[])
+
+  
   const logout = async ()=>{
       await api.post('/auth/logout').then(() =>{
           localStorage.removeItem('Token');
@@ -42,30 +61,17 @@ export const UserStore = ({ children }: { children: ReactNode }) => {
   }
 
 
-  useEffect(() => {
-      
-    api.get('/numbers/1').then(
-        ({ status, data }) => {
-          status === 201 && setWhatsappNum(data.data)
-        }
-      )
-    
-  },[])
 
 
-  const isAuthenticetd = (auth : string)=>{
-    _setAuthenticeted(auth)
-    localStorage.setItem('auth',auth)
-  }
+
+ 
 
 api.interceptors.response.use(function onFulfilled(response) {
-    const newToken  = response.headers['x-new-access-token'];
   
+    const newToken  = response.headers['x-new-access-token'];  
     if (newToken) {
       localStorage.setItem('Token', newToken);      
-      api.defaults.headers.common['Authorization'] =  'Bearer'+newToken;
     }
-
      return response;
     
   }, async function onRejected(error) {
@@ -74,7 +80,7 @@ api.interceptors.response.use(function onFulfilled(response) {
       const originalRequest = error.config; 
       
       if (error.response.data.message === "EXPIRED") {
-            return new Promise(async (resolve,reject)=>{
+            return new Promise<string>(async (resolve,reject)=>{
                   //send request to refresh token
                   const {status, data} = await  api.post('/auth/refresh');
 
@@ -88,7 +94,7 @@ api.interceptors.response.use(function onFulfilled(response) {
                   }else{
                     reject('error')
                   }
-            }).then(async (token)=>{
+            }).then(async (token : string)=>{
               //update the token in the localStorage 
               localStorage.setItem('Token', token);
 
@@ -100,7 +106,7 @@ api.interceptors.response.use(function onFulfilled(response) {
 
               //resend request with the new token
               return await api(originalRequest)
-            }).catch(error =>{
+            }).catch(() =>{
               isAuthenticetd('false')
             })
 
@@ -131,4 +137,4 @@ const value: ContextType = {
   )
 }
 
-export const userData = () => useContext(UserContext);
+export const UserData = () => useContext(UserContext);

@@ -1,10 +1,10 @@
 import { type Request, type Response } from "express";
 import fs from 'fs/promises';
-import { startBotLogic, startSession } from "../services/bot.ts";
+import { startBotLogic, startSession } from "../services/bot.js";
 import wss, { WebSocketServer } from "ws";
 import { Server } from "http";
-import { logs } from "../utils/logs.ts";
-import { Wnums } from "../db/connection.ts";
+import { logs } from "../utils/logs.js";
+import { Wnums } from "../db/connection.js";
 
 
 /*
@@ -15,7 +15,7 @@ async function QrCode(req: Request, res: Response): Promise<void> {
     //get the sessionid
     if (req.params.session_id) {
 
-      const sessionId: string = req.params.session_id;
+      const sessionId: string = req.params.session_id as string;
 
       //get the linked session stored in auth directorie
       const sesionId_Dir: readonly String[] = await fs.readdir('./auth');

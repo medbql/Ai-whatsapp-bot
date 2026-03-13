@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { show, store } from "../controllers/bootController.ts";
+import { show, store } from "../controllers/bootController.js";
 
 
 export const bootsRouter = Router();

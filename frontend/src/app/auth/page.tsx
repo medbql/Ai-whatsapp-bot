@@ -1,6 +1,5 @@
 'use client'
-import { api } from "@/axios/config"
-import { Button } from "@/components/ui/button"
+import { api } from "@/src/axios/config"
 import {
   Card,
   CardContent,
@@ -8,11 +7,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+} from "@/src/components/ui/card"
+import { Input } from "@/src/components/ui/input"
 import { ChangeEvent, useEffect, useState } from "react"
 import { useRouter } from "next/navigation";
-import { userData } from "@/src/authContext"
+import { UserData } from "@/src/authContext"
+import { Button } from "@/src/components/ui/button"
 
 
 /**
@@ -20,15 +20,14 @@ import { userData } from "@/src/authContext"
  * 
  * @param {Object} props
  * @param {()=> void} props.isRegister -navigate to register card 
-*
-* @returns {JSX.element} -card containing login form 
+** @returns {JSX.element} -card containing login form 
  */
 const LoginCard = ({isRegister  } : { isRegister : () => void}) =>{
     interface FormState{
         email : string;
         password : string;
     }
-   const {isAuthenticetd} = userData();
+   const {isAuthenticetd} = UserData();
    const router = useRouter();
 
     const [from, setForm] = useState<FormState>({
@@ -124,8 +123,8 @@ const RegisterCard = ({islogin}:{islogin : () => void}) =>{
 
     const onSubmit = async () =>{
         await api.post('/auth/register',from).then(
-            ({status, data})=>{
-                status === 201 && islogin();
+            ({status})=>{
+               if (status === 201) { islogin()}
             }
         )
     }
@@ -193,7 +192,7 @@ const RegisterCard = ({islogin}:{islogin : () => void}) =>{
 
 export default function LoginPage() {
    const [isLogin, setLogin] = useState<boolean>(true); 
-  const {authenticated} = userData();
+  const {authenticated} = UserData();
   const router = useRouter();
 
   useEffect(()=>{

@@ -1,7 +1,9 @@
-import { BrainCog, Calendar, Home, Inbox, LucideWashingMachine, Search, Settings, User } from "lucide-react"
-
-import {
-  Sidebar,
+import { BrainCog, User } from "lucide-react"
+import Link from "next/link"
+import { UserData } from "./authContext"
+import { Button } from "./components/ui/button"
+import { 
+  Sidebar, 
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
@@ -10,11 +12,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter
-} from "@/components/ui/sidebar"
-import Link from "next/link"
-import { userData } from "./authContext"
-import { Button } from "@/components/ui/button"
-import { useRouter } from "next/navigation";
+} from "./components/ui/sidebar"
+
 
 // Menu items.
 const items = [
@@ -32,11 +31,8 @@ const items = [
 ]
 
 export function AppSidebar() {
-
-  const {logout} = userData();
-
-
-
+  const {logout} = UserData();
+ 
   return (
     <Sidebar className="my-5 ml-3 h-[80hv] border overflow-hidden rounded-xl" >
       <SidebarContent className=" bg-gray-400/10 backdrop-blur-lg ">
