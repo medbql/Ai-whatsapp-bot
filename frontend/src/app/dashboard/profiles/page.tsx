@@ -1,9 +1,9 @@
 "use client";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/src/components/ui/button";
 import QRCode from "react-qr-code";
 import { useEffect, useState } from "react";
-import { api } from "@/axios/config";
-import { Camera, Circle, LoaderCircle, MonitorSmartphone, Plus, PlusIcon, QrCode, Settings, Smartphone, Verified, X } from "lucide-react";
+import { api } from "@/src/axios/config";
+import { Camera, LoaderCircle, MonitorSmartphone, PlusIcon, QrCode, Settings, Smartphone, Verified, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import {
   Card,
@@ -12,9 +12,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input";
-import { userData } from "@/src/authContext";
+} from "@/src/components/ui/card"
+import { Input } from "@/src/components/ui/input";
+import { UserData } from "@/src/authContext";
 
 
 
@@ -39,8 +39,10 @@ const LinkedSession = ({ startSession, isClose, sessionId }: linkedSessionProps)
       try {
         setIsloading(true);
         
+        const wsUrl = process.env.NEXT_PUBLIC_WS_URL as string;
+
         //connect to webSocket server
-        const ws = new WebSocket('ws://localhost:8080');
+        const ws = new WebSocket(wsUrl);
 
         //open connection
         ws.onopen = () => {
@@ -82,8 +84,8 @@ const LinkedSession = ({ startSession, isClose, sessionId }: linkedSessionProps)
         await api.get(`/whatsapp/${sessionId}`).then(
           ({ status, data }) => {
             //check the status of response 
-            status === 201 ? setQr(data.QrCode)
-              : status === 200 && isClose()
+            if (status === 201) { setQr(data.QrCode)              
+            }else if(status === 200){isClose()}
           }
         )
 
@@ -97,8 +99,8 @@ const LinkedSession = ({ startSession, isClose, sessionId }: linkedSessionProps)
     };
 
     //if startSession true call the getQrCode func
-    startSession && getQrCode();
-    !startSession && setQr(null);//return the qr code empty
+    if(startSession){getQrCode()};
+    if(!startSession){setQr(null)}//return the qr code empty
 
   }, [startSession])
 
@@ -199,14 +201,16 @@ const NumberForm = ({ isOpen, isClose }: propsForm) => {
 
   const saveNumber = async (): Promise<void> => {
     try {
-      setIsloading(true)
-      WhatsappNum.length === 14 && await api.post('/numbers', { number: WhatsappNum, user_id: 1 }).then(
+      setIsloading(true);
+      if (WhatsappNum.length === 14) {
+        await api.post('/numbers',{number: WhatsappNum, user_id: 1}).then(
         ({ status }) => {
-          status === 201 && isClose()
+          if(status === 201) { isClose() }
         }
       )
+      }
     } catch (error) {
-
+        console.log(error)
     }
   }
 
@@ -243,7 +247,7 @@ const NumberForm = ({ isOpen, isClose }: propsForm) => {
 export default function Home() {
   const [startSession, setStartSession] = useState<string | boolean | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const { whatsappNum } = userData();
+  const { whatsappNum } = UserData();
 
 
   return (

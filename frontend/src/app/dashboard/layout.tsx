@@ -1,17 +1,16 @@
 'use client'
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/src/app-sideBar";
-import { userData, UserStore } from "@/src/authContext";
+import { UserData } from "@/src/authContext";
+import { SidebarProvider,SidebarTrigger } from "@/src/components/ui/sidebar";
 import { ReactNode, useEffect } from "react";
 
 
 
 export default function DashboardLayout({ children} : { children : ReactNode}) {
-  const {authenticated,logout} = userData();   
-
+  const {authenticated,logout} = UserData();   
+  console.log(authenticated)
   useEffect(()=>{
      if (authenticated === 'false' ) {
-      console.log('auth test')
         logout()
     } 
   },[authenticated])

@@ -1,5 +1,5 @@
 import { type Request, type Response } from "express";
-import { Boot } from "../db/connection.ts";
+import { Boot } from "../db/connection.js";
 
 
 /*
@@ -10,7 +10,7 @@ async function show(req: Request, res: Response): Promise<void> {
     //the user_id is not undifined
     if (req.params.user_id) {
 
-      const userId: number = parseInt(req.params.user_id);//change the type of user_id to number
+      const userId: number = parseInt(req.params.user_id as string);//change the type of user_id to number
 
       //get boots from database
       const userBoots = await Boot.Nums_Join(userId)

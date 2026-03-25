@@ -1,11 +1,11 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import { User } from "../db/connection.ts";
-import { accessTokenGeneretor, refreshTokenGeneretor, verifyRefrshToken } from "../services/jwt.ts";
+import { User } from "../db/connection.js";
+import { accessTokenGeneretor, refreshTokenGeneretor, verifyRefrshToken } from "../services/jwt.js";
 import dotenv from "dotenv";
 import axios from "axios";
 import crypto from "crypto";
-import { logs } from "../utils/logs.ts";
+import { logs } from "../utils/logs.js";
 
 
 dotenv.config();
@@ -291,7 +291,9 @@ authRouter.get('/google/callback', async (req, res) => {
           path: '/'
         })
 
-        res.redirect(`http://localhost:3000/auth/callback?code=${oneTimeCode}`);
+        const front_callback_route = process.env.FRONTEND_CALLBACK_URL;
+
+        res.redirect(`${front_callback_route}${oneTimeCode}`);
       }
 
 

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { QrCode, start } from "../controllers/whatsappController.ts";
+import { QrCode, start } from "../controllers/whatsappController.js";
 
 
 export const whatsappRouter = Router();

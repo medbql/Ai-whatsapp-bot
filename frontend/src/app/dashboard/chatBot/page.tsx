@@ -1,5 +1,5 @@
 "use client"
-import { Button } from '@/components/ui/button';
+import { Button } from '@/src/components/ui/button';
 import { ChangeEvent, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -9,15 +9,21 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { api } from "@/axios/config";
+} from "@/src/components/ui/card"
+import { AlertCircleIcon, X } from 'lucide-react';
+import { Input } from '@/src/components/ui/input';
+import { api } from "@/src/axios/config";
 import {
   NativeSelect,
   NativeSelectOption,
-} from "@/components/ui/native-select"
-import { userData } from '@/src/authContext';
+} from "@/src/components/ui/native-select"
+import { UserData } from '@/src/authContext';
+import {
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertTitle,
+} from "@/src/components/ui/alert"
 
 
 
@@ -34,13 +40,14 @@ interface form {
 
 
 const BotForm = ({ isOpen, isClose }: propsForm) => {
-  const { whatsappNum } = userData();
+  const { whatsappNum } = UserData();
+  const [showAlert, setShowAlert] = useState<boolean>(false);
+
   const [fields, setFiles] = useState<form>({
     botName: '',
     botModel: '',
     number_id: 0
   })
-  console.log(fields)
 
   const handelChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const name = e.target.name;
@@ -51,17 +58,39 @@ const BotForm = ({ isOpen, isClose }: propsForm) => {
   }
   const addBoot = async () => {
     try {
-      await api.post('/boots', { ...fields }).then(
+       if (fields.number_id > 0) {
+          await api.post('/boots', { ...fields }).then(
         ({ status }) => status === 201 && isClose()
-      )
+        )
+      } else{ throw new Error('number required')}
     } catch (error) {
-
+      setShowAlert(true);
     }
   }
 
 
   return isOpen ? <>
     {createPortal(
+      <>
+      {
+        showAlert && (
+           <div className={`fixed top-0 left-0 right-0 z-50 flex justify-center p-4
+        ${!showAlert ? 'animate-slide-up' : 'animate-slide-down'}`} >
+    <Alert variant="destructive" className="max-w-md border-red-500 shadow-md">
+ <AlertCircleIcon />
+  <AlertTitle>Error</AlertTitle>
+  <AlertDescription>
+    Please! try again.
+  </AlertDescription>
+  <AlertAction>
+    <Button onClick={()=>setShowAlert(false)} className='bg-transparant w-10 h-7 hover:bg-transparant border-red-500 '>
+      <X  className='p-0 text-red-500' />
+    </Button>
+  </AlertAction>
+</Alert>
+</div>
+        )
+      }
       <div className='fixed  z-10 top-0 bottom-0 right-0 left-0 bg-white/20 backdrop-brightness-50'>
         <div className=' w-full h-full flex flex-col items-center '>
           <Card className='w-1/2 h-3/7 bg-white/90 mx-auto  my-auto border border-emerald-300/50 rounded-2xl shadow-lg '>
@@ -80,7 +109,7 @@ const BotForm = ({ isOpen, isClose }: propsForm) => {
 
               <label className='text-gray-600 pl-1' > number:</label>
               <NativeSelect className="w-200 my-2 " onChange={handelChange} name="number_id">
-
+                <NativeSelectOption  value={""} >select a number...</NativeSelectOption>
                 {
                   whatsappNum.map((num, idx) => (
                     <NativeSelectOption key={idx} value={num.id} >{num.number}</NativeSelectOption>
@@ -94,7 +123,7 @@ const BotForm = ({ isOpen, isClose }: propsForm) => {
           </Card>
         </div>
       </div>
-
+</>
       , document.body)}
   </> : null
 
@@ -115,7 +144,7 @@ const ChatBot = () => {
     (async () => {
       await api.get('/boots/1').then(
         ({ status, data }) => {
-          status === 201 && setBoots(data.data)
+          if(status === 201){ setBoots(data.data)}
         }
       )
     })()
@@ -129,11 +158,13 @@ const ChatBot = () => {
         }
       )
     } catch (error) {
-
+       console.log(error)
     }
   }
 
   return (
+    <>
+    
     <div className=" bg-white/10 w-full h-[80%] mx-auto  mt-20 p-15 backdrop-blur-lg rounded-2xl shadow-2xl overflow-hidden border border-white/20  md:p-8">
       <div className="w-full flex justify-between items-center ">
         <span>
@@ -159,6 +190,7 @@ const ChatBot = () => {
         ))}
       </div>
     </div >
+    </>
   );
 
 

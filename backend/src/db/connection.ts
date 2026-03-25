@@ -1,5 +1,5 @@
 import { Pool } from "pg";
-import { logs } from "../utils/logs.ts";
+import { logs } from "../utils/logs.js";
 import dotenv from "dotenv";
 
 
@@ -139,7 +139,7 @@ class Boots extends Curd {
                                        FROM ${this.table} AS B
                                        INNER JOIN WhatsappNums AS W ON B.number_id = W.id 
                                        WHERE W.user_id= $1`, [user_id]);
-      if (!boots.rowCount) {
+      if (boots.rowCount) {
         return boots.rows
       }
     } catch (error) {

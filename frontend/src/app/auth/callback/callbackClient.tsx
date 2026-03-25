@@ -1,19 +1,19 @@
 'use client'
-import { api } from "@/axios/config";
-import { userData } from "@/src/authContext";
+import { api } from "@/src/axios/config";
+import { UserData } from "@/src/authContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
-export default function CallBack() {
+export default function CallBackClient() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const {isAuthenticetd} = userData()
+    const {isAuthenticetd} = UserData()
 
     useEffect(()=>{
         const code = searchParams.get('code');
         const error = searchParams.get('error');
       
-
+        console.log(code)
         if (error || !code) {
             router.replace('/auth');
         }
@@ -21,20 +21,23 @@ export default function CallBack() {
          api.post('/auth/exchange-token',{code}).then(
                 (res)=>{  
                       localStorage.setItem('Token', res.data.accessToken);      
-                      isAuthenticetd('true')
-                      router.replace('/dashboard')                  
+                      setTimeout(()=>{
+ isAuthenticetd('true')
+                      router.replace('/dashboard')        
+                      },5000)
+                               
                 }
-            ).catch(err=>{
+            ).catch(()=>{
                    isAuthenticetd('false')
                    router.replace('/auth');
             })
         
         
-    },[router, searchParams])
+    },[router, searchParams]);
 
-    return(
+    return (
         <>
-        <h2>sing in...</h2>
+          <h1>Sing in</h1>
         </>
-    )
+    )    
 }
