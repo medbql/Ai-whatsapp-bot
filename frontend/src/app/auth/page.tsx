@@ -11,7 +11,7 @@ import {
 import { Input } from "@/src/components/ui/input"
 import { ChangeEvent, useEffect, useState } from "react"
 import { useRouter } from "next/navigation";
-import { UserData } from "@/src/authContext"
+import { useAuth } from "@/src/authContext"
 import { Button } from "@/src/components/ui/button"
 
 
@@ -27,7 +27,7 @@ const LoginCard = ({isRegister  } : { isRegister : () => void}) =>{
         email : string;
         password : string;
     }
-   const {isAuthenticetd} = UserData();
+   const {dispatch} = useAuth();
    const router = useRouter();
 
     const [from, setForm] = useState<FormState>({
@@ -45,7 +45,7 @@ const LoginCard = ({isRegister  } : { isRegister : () => void}) =>{
             ({status, data})=>{
                 if (status === 200) {
                     localStorage.setItem('Token', data.user.accessToken);
-                    isAuthenticetd('true')
+                    dispatch({type:'isAuthenticed',auth: true})
                     router.push('/dashboard')           
                 };
             }
@@ -192,14 +192,14 @@ const RegisterCard = ({islogin}:{islogin : () => void}) =>{
 
 export default function LoginPage() {
    const [isLogin, setLogin] = useState<boolean>(true); 
-  const {authenticated} = UserData();
+  const {auth} = useAuth();
   const router = useRouter();
-
+  console.log('auth', auth)
   useEffect(()=>{
-    if (authenticated === 'true') {
+    if (auth) {
       router.replace('/dashboard')
     }
-  },[authenticated])
+  },[auth])
 
    return (
     <>

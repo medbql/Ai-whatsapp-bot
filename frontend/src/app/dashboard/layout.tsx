@@ -1,19 +1,25 @@
 'use client'
 import { AppSidebar } from "@/src/app-sideBar";
-import { UserData } from "@/src/authContext";
+import { useAuth } from "@/src/authContext";
 import { SidebarProvider,SidebarTrigger } from "@/src/components/ui/sidebar";
+import { useRouter } from "next/navigation";
+
 import { ReactNode, useEffect } from "react";
 
 
 
 export default function DashboardLayout({ children} : { children : ReactNode}) {
-  const {authenticated,logout} = UserData();   
-  console.log(authenticated)
+  const  {auth,dispatch} = useAuth();
+  const router = useRouter();
+  
+  console.log(auth)
   useEffect(()=>{
-     if (authenticated === 'false' ) {
-        logout()
-    } 
-  },[authenticated])
+    console.log(auth)
+    if (!auth) {
+      dispatch({type:'logout'})
+      router.replace('/auth')
+    }
+  },[auth])
   
   return(
         <div>

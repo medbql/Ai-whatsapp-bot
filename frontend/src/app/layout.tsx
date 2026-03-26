@@ -1,7 +1,7 @@
 'use client'
 import "./globals.css";
 import Link from "next/link";
-import { UserStore } from "@/src/authContext";
+import { AuthProvider } from "@/src/authContext";
 import { Button } from "../components/ui/button";
 import { 
    NavigationMenu,
@@ -32,7 +32,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </header>
            <main>
             
-          <UserStore> {children}</UserStore>
+          <AuthProvider> {children}</AuthProvider>
 
           </main>
 

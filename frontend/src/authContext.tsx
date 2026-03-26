@@ -1,72 +1,50 @@
 "use client"
 import { api } from "@/src/axios/config";
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { createContext, Dispatch, ReactNode, useContext, useEffect, useReducer } from "react";
 
-interface WhatsAppNumber {
-  id: number,
-  number: string;
-  linked: boolean;
+
+type Action = { type : 'isAuthenticed' ,auth : boolean} | {type:'logout'};
+
+
+const reducer = (state : boolean , action  :Action) : boolean => {
+    switch (action.type) {
+      case 'isAuthenticed':
+              localStorage.setItem('auth',  String(action.auth));
+              console.log('action', action.auth)
+              return action.auth;
+        break;
+      case 'logout':
+            localStorage.removeItem('Token');
+            localStorage.setItem('auth',  String(false))
+            return false;
+        break;
+
+      default:
+        return state;
+    }
 }
 
-
-interface ContextType {
-  whatsappNum: WhatsAppNumber[],
-  setWhatsappNum: () => void,
-  authenticated: string,
-   isAuthenticetd: (auth : string) => void,
-   logout: () => void
+interface StatesType{
+    auth : boolean,
+    dispatch : Dispatch<Action>
 }
 
-const UserContext = createContext<ContextType>({
-  whatsappNum: [],
-  setWhatsappNum: () => { },
-  authenticated :  'false',
-  isAuthenticetd: (auth : string) =>{}, 
-  logout: ()=> { }
-})
+const authStateContext = createContext<StatesType>({
+  auth: false,
+  dispatch: () => {}
+});
 
-export const UserStore = ({ children }: { children: ReactNode }) => {
-  const [whatsappNum, setWhatsappNum] = useState<WhatsAppNumber[]>([]);
-  const [authenticated, setAuthenticeted] = useState<string>(()=>{
-    if(typeof window === 'undefined') return  'false';
-    return localStorage.getItem('auth') || 'false';
-  });
-  const router = useRouter();
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
-const isAuthenticetd = (auth : string)=>{
-    setAuthenticeted(auth)
-    localStorage.setItem('auth',auth)
-  }
-   useEffect(() => {
+  const [auth, dispatch] = useReducer(reducer,false );
 
-   (async() =>{
-      await api.get('/numbers/1').then(
-        ({ status, data }) => {
-          status === 201 && setWhatsappNum(data.data)
-        }
-      )
-    })();
-
-    
+  useEffect(()=>{
+     console.log('effect')
+      dispatch({type:'isAuthenticed', auth: Boolean(localStorage.getItem('autth')) || false })
   },[])
 
-  
-  const logout = async ()=>{
-      await api.post('/auth/logout').then(() =>{
-          localStorage.removeItem('Token');
-          isAuthenticetd('false')
-          router.replace('/auth')
-      })
-  }
 
-
-
-
-
- 
-
-api.interceptors.response.use(function onFulfilled(response) {
+ api.interceptors.response.use(function onFulfilled(response) {
   
     const newToken  = response.headers['x-new-access-token'];  
     if (newToken) {
@@ -107,34 +85,27 @@ api.interceptors.response.use(function onFulfilled(response) {
               //resend request with the new token
               return await api(originalRequest)
             }).catch(() =>{
-              isAuthenticetd('false')
+              dispatch({type:'logout' })
             })
 
       }else{
-        isAuthenticetd('false')
+        dispatch({type:'logout' })
       }
     }else{
       return error
     }
 });
 
-  
-const value: ContextType = {
-      whatsappNum,
-      setWhatsappNum: () => { },
-      authenticated,
-      isAuthenticetd,
-      logout, 
-  
-}
 
-  
 
-  return (
-    <UserContext.Provider value={value}>
+  return (     
+    <authStateContext.Provider value={{
+      auth,
+      dispatch
+    }}>
       {children}
-    </UserContext.Provider>
+    </authStateContext.Provider>
   )
 }
 
-export const UserData = () => useContext(UserContext);
+export const useAuth = () => useContext(authStateContext);

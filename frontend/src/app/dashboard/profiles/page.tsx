@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/src/components/ui/card"
 import { Input } from "@/src/components/ui/input";
-import { UserData } from "@/src/authContext";
+import { useAuth } from "@/src/authContext";
 
 
 
@@ -247,7 +247,7 @@ const NumberForm = ({ isOpen, isClose }: propsForm) => {
 export default function Home() {
   const [startSession, setStartSession] = useState<string | boolean | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const { whatsappNum } = UserData();
+  const [ whatsappNum , setWhatsappNum]= useState([]);
 
 
   return (
@@ -262,7 +262,7 @@ export default function Home() {
 
       <div className="w-full h-[1px] bg-white/20 backdrop-blur-lg my-4 " ></div>
       <div className="w-full pt-5 flex flex-wrap gap-4 ">
-        {
+        {/*
           whatsappNum.map((session, idx) => (
             <div key={idx} className="w-1/3 p-3 flex flex-col  h-25 content-center bg-white/80 backdrop-brightness-50 border border-emerald-400 rounded-xl shadow-lg">
               <div className=" flex justify-between">
@@ -274,7 +274,7 @@ export default function Home() {
               <LinkedSession startSession={startSession === session.number.trimEnd()} isClose={() => setStartSession(false)} sessionId={session.number.trimEnd()} />
             </div>
           ))
-        }
+        */}
         <div className="w-1/3 p-3 flex items-center h-25 content-center bg-white/80 backdrop-brightness-50 border border-emerald-400 rounded-xl shadow-lg">
           <div onClick={() => setIsOpen(true)} className="w-15 ml-4 p-2 bg-white/10 backdrop-blur-lg h-15 border border-emerald-400 rounded-full">
             <PlusIcon className="size-10 text-emerald-500 font-medium" />

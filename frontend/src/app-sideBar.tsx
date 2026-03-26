@@ -1,6 +1,6 @@
 import { BrainCog, User } from "lucide-react"
 import Link from "next/link"
-import { UserData } from "./authContext"
+import { useAuth } from "./authContext"
 import { Button } from "./components/ui/button"
 import { 
   Sidebar, 
@@ -31,7 +31,7 @@ const items = [
 ]
 
 export function AppSidebar() {
-  const {logout} = UserData();
+ 
  
   return (
     <Sidebar className="my-5 ml-3 h-[80hv] border overflow-hidden rounded-xl" >
@@ -56,7 +56,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <Button onClick={()=>logout()} >
+        <Button  >
           Log out
         </Button>
       </SidebarFooter>
