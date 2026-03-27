@@ -53,7 +53,7 @@ const LoginCard = ({isRegister  } : { isRegister : () => void}) =>{
     }
 
     const singInGoogle = () =>{
-        window.location.href = 'http://localhost:8080/api/auth/google'
+        window.location.href = process.env.NEXT_PUBLIC_GOOGLE_SINGUP_API as string
     }
 
     return(
