@@ -22,6 +22,15 @@ async function QrCode(req: Request, res: Response): Promise<void> {
         //when the number alerady have one session linked don't linked second one
         if (!sesionId_Dir.includes(sessionId)) {
 
+
+      const sendSession = async (files: string[]): Promise<void> => {
+        //get the linked session stored in auth directorie
+        const sesionId_Dir: readonly string[] = files;
+
+
+        //when the number alerady have one session linked don't linked second one
+        if (!sesionId_Dir.includes(sessionId)) {
+
           await startSession(sessionId).then(
             (qr) => res.status(201).json({
               QrCode: qr
@@ -31,6 +40,7 @@ async function QrCode(req: Request, res: Response): Promise<void> {
 
 
       }
+
 
       await fs.readdir('./auth').then(files => sendSession(files)
       ).catch(async (err) => {
