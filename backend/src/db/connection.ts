@@ -5,19 +5,31 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const isProd: boolean = process.env.APP_ENV === 'pord';
+
 class Curd {
   protected db: Pool;
   protected table: string;
 
 
   public constructor(table: string) {
-    this.db = new Pool({
-      user: process.env.DB_USER,
-      host: process.env.DB_HOST,
-      database: process.env.DB_NAME,
-      password: process.env.DB_PASSWORD,
-      port: parseInt(process.env.DB_PORT || '5432')
-    })
+    if (isProd) {
+      this.db = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: {
+          rejectUnauthorized: false
+        }
+      })
+    } else {
+      this.db = new Pool({
+        user: process.env.DB_USER,
+        host: process.env.DB_HOST,
+        database: process.env.DB_NAME,
+        password: process.env.DB_PASSWORD,
+        port: parseInt(process.env.DB_PORT || '5432')
+      })
+    }
+
     this.table = table
   }
 

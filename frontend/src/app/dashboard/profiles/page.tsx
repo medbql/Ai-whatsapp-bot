@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/src/components/ui/button";
 import QRCode from "react-qr-code";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { api } from "@/src/axios/config";
 import { Camera, LoaderCircle, MonitorSmartphone, PlusIcon, QrCode, Settings, Smartphone, Verified, X } from "lucide-react";
 import { createPortal } from "react-dom";
@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/src/components/ui/card"
 import { Input } from "@/src/components/ui/input";
-import { useAuth } from "@/src/authContext";
+import { userContext } from "../layout";
 
 
 
@@ -191,11 +191,12 @@ const LinkedSession = ({ startSession, isClose, sessionId }: linkedSessionProps)
 //-------------------------------------------------------------------------------//
 
 interface propsForm {
+  userId: number | null,
   isOpen: boolean,
   isClose: () => void,
 }
 
-const NumberForm = ({ isOpen, isClose }: propsForm) => {
+const NumberForm = ({ userId, isOpen, isClose }: propsForm) => {
   const [WhatsappNum, setWhatsappNum] = useState<string>('');
   const [isLoading, setIsloading] = useState<boolean>(false);
 
@@ -203,7 +204,7 @@ const NumberForm = ({ isOpen, isClose }: propsForm) => {
     try {
       setIsloading(true);
       if (WhatsappNum.length === 14) {
-        await api.post('/numbers',{number: WhatsappNum, user_id: 1}).then(
+        await api.post('/numbers',{number: WhatsappNum, user_id: userId}).then(
         ({ status }) => {
           if(status === 201) { isClose() }
         }
@@ -244,12 +245,13 @@ const NumberForm = ({ isOpen, isClose }: propsForm) => {
 
 //-----------------Profiles component-----------------------------------------//
 //-------------------------------------------------------------------------------//
+
 export default function Home() {
   const [startSession, setStartSession] = useState<string | boolean | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [ whatsappNum , setWhatsappNum]= useState([]);
-
-
+  
+  const {wNumbers, userId} = useContext(userContext);
+  
   return (
     <div className=" bg-white/10 w-full h-[80%] mx-auto  mt-20 p-15 backdrop-blur-lg rounded-2xl shadow-2xl overflow-hidden border border-white/20  md:p-8">
       <div className="w-full flex justify-between items-center ">
@@ -262,8 +264,8 @@ export default function Home() {
 
       <div className="w-full h-[1px] bg-white/20 backdrop-blur-lg my-4 " ></div>
       <div className="w-full pt-5 flex flex-wrap gap-4 ">
-        {/*
-          whatsappNum.map((session, idx) => (
+        
+         { wNumbers.map((session, idx) => (
             <div key={idx} className="w-1/3 p-3 flex flex-col  h-25 content-center bg-white/80 backdrop-brightness-50 border border-emerald-400 rounded-xl shadow-lg">
               <div className=" flex justify-between">
 
@@ -274,14 +276,14 @@ export default function Home() {
               <LinkedSession startSession={startSession === session.number.trimEnd()} isClose={() => setStartSession(false)} sessionId={session.number.trimEnd()} />
             </div>
           ))
-        */}
+        }
         <div className="w-1/3 p-3 flex items-center h-25 content-center bg-white/80 backdrop-brightness-50 border border-emerald-400 rounded-xl shadow-lg">
           <div onClick={() => setIsOpen(true)} className="w-15 ml-4 p-2 bg-white/10 backdrop-blur-lg h-15 border border-emerald-400 rounded-full">
             <PlusIcon className="size-10 text-emerald-500 font-medium" />
           </div>
           <p className="ml-3 text-emerald-500 font-medium">Add a profile...</p>
         </div>
-        <NumberForm isOpen={isOpen} isClose={() => setIsOpen(false)} />
+        <NumberForm userId={userId} isOpen={isOpen} isClose={() => setIsOpen(false)} />
       </div>
     </div >
   );

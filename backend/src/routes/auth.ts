@@ -17,7 +17,7 @@ dotenv.config();
 export const authRouter = Router();
 
 
-const pendingTokens = new Map<string, { accessToken: string }>();
+const pendingTokens = new Map<string, { accessToken: string, userId: number }>();
 
 //---------------Register Endpoint-----------------------------//
 authRouter.post('/register', async (req, res) => {
@@ -161,6 +161,7 @@ authRouter.post('/refresh', async (req, res) => {
         res.status(200).json({
           accessToken: newAccessToken
         })
+
       } else {
         res.status(401).json({
           success: false,
@@ -283,7 +284,7 @@ authRouter.get('/google/callback', async (req, res) => {
         const isProd = process.env.APP_ENV === 'prod';
 
         const oneTimeCode = crypto.randomBytes(32).toString('hex');
-        pendingTokens.set(oneTimeCode, { accessToken });
+        pendingTokens.set(oneTimeCode, { accessToken, userId: user.id });
 
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
@@ -322,7 +323,7 @@ authRouter.post('/exchange-token', (req, res) => {
 
     pendingTokens.delete(code);
 
-    res.json({ success: true, accessToken: pendingToken.accessToken });
+    res.json({ success: true, accessToken: pendingToken.accessToken, userId: pendingToken.userId });
 
   } catch (error) {
     logs(error)

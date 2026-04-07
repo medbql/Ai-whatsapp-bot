@@ -1,3 +1,4 @@
+'use client'
 import { BrainCog, User } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "./authContext"
@@ -13,6 +14,7 @@ import {
   SidebarMenuItem,
   SidebarFooter
 } from "./components/ui/sidebar"
+import { usePathname } from "next/navigation"
 
 
 // Menu items.
@@ -30,9 +32,12 @@ const items = [
 
 ]
 
-export function AppSidebar() {
- 
- 
+export function AppSidebar({}) {
+  const path = usePathname();
+  const  {dispatch } = useAuth();
+  console.log(path)
+  const handelUrlPath = (url: string) : string => path === '/dashboard' ? 'dashboard/'+url : url;
+
   return (
     <Sidebar className="my-5 ml-3 h-[80hv] border overflow-hidden rounded-xl" >
       <SidebarContent className=" bg-gray-400/10 backdrop-blur-lg ">
@@ -43,7 +48,7 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <Link href={item.url} >
+                    <Link href={handelUrlPath(item.url)} >
                       <item.icon />
                       <span>{item.title}</span>
 
@@ -56,7 +61,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <Button  >
+        <Button  onClick={()=> dispatch({type:'logout'})} >
           Log out
         </Button>
       </SidebarFooter>

@@ -16,20 +16,28 @@ async function QrCode(req: Request, res: Response): Promise<void> {
     if (req.params.session_id) {
 
       const sessionId: string = req.params.session_id as string;
+      const sendSession = async (files: string[]): Promise<void> => {
+        //get the linked session stored in auth directorie
+        const sesionId_Dir: readonly string[] = files;
+        //when the number alerady have one session linked don't linked second one
+        if (!sesionId_Dir.includes(sessionId)) {
 
-      //get the linked session stored in auth directorie
-      const sesionId_Dir: readonly String[] = await fs.readdir('./auth');
+          await startSession(sessionId).then(
+            (qr) => res.status(201).json({
+              QrCode: qr
+            })
+          )
+        } else { res.status(400).json({ message: "this session alerady exist." }) }
 
-      //when the number alerady have one session linked don't linked second one
-      if (!sesionId_Dir.includes(sessionId)) {
 
-        await startSession(sessionId).then(
-          (qr) => res.status(201).json({
-            QrCode: qr
-          })
-        )
-      } else { res.status(400).json({ message: "this session alerady exist." }) }
+      }
 
+      await fs.readdir('./auth').then(files => sendSession(files)
+      ).catch(async (err) => {
+        await fs.mkdir('auth');
+        const sesionId_Dir: string[] = await fs.readdir('./auth');
+        sendSession(sesionId_Dir)
+      })
     }
   } catch (error) {
     res.status(500).json({
