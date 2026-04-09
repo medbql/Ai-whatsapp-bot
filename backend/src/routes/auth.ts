@@ -16,8 +16,9 @@ dotenv.config();
 //instance router
 export const authRouter = Router();
 
+const isProd = process.env.APP_ENV === 'prod';
 
-const pendingTokens = new Map<string, { accessToken: string }>();
+const pendingTokens = new Map<string, { accessToken: string, refreshToken: string, userId: number }>();
 
 //---------------Register Endpoint-----------------------------//
 authRouter.post('/register', async (req, res) => {
@@ -115,11 +116,11 @@ authRouter.post('/login', async (req, res) => {
     const accessToken = accessTokenGeneretor(user.id);
     const refreshToken = refreshTokenGeneretor(user.id);
 
-    const isProd = process.env.APP_ENV === 'prod';
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: isProd,
+      sameSite: "none",
       path: '/'
     })
 
@@ -161,6 +162,7 @@ authRouter.post('/refresh', async (req, res) => {
         res.status(200).json({
           accessToken: newAccessToken
         })
+
       } else {
         res.status(401).json({
           success: false,
@@ -190,7 +192,12 @@ authRouter.post('/refresh', async (req, res) => {
 authRouter.post('/logout', (req, res) => {
   try {
     //delete the reafresh token 
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'none',
+      path: '/'
+    });
 
     res.status(200).json({
       message: 'user logout seccussefly.'
@@ -280,23 +287,14 @@ authRouter.get('/google/callback', async (req, res) => {
         const accessToken = accessTokenGeneretor(user.id);
         const refreshToken = refreshTokenGeneretor(user.id);
 
-        const isProd = process.env.APP_ENV === 'prod';
 
         const oneTimeCode = crypto.randomBytes(32).toString('hex');
-        pendingTokens.set(oneTimeCode, { accessToken });
-
-        res.cookie('refreshToken', refreshToken, {
-          httpOnly: true,
-          secure: isProd,
-          path: '/'
-        })
+        pendingTokens.set(oneTimeCode, { accessToken, refreshToken, userId: user.id });
 
         const front_callback_route = process.env.FRONTEND_CALLBACK_URL;
 
         res.redirect(`${front_callback_route}${oneTimeCode}`);
       }
-
-
     }
 
 
@@ -322,7 +320,15 @@ authRouter.post('/exchange-token', (req, res) => {
 
     pendingTokens.delete(code);
 
-    res.json({ success: true, accessToken: pendingToken.accessToken });
+    res.cookie('refreshToken', pendingToken.refreshToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'none',
+      path: '/'
+    })
+
+
+    res.json({ success: true, accessToken: pendingToken.accessToken, userId: pendingToken.userId });
 
   } catch (error) {
     logs(error)

@@ -18,7 +18,6 @@ async function show(req: Request, res: Response): Promise<void> {
 
       //check if data exist 
       if (userBoots) {
-        console.log('sned it ....................')
         res.status(201).json({ data: userBoots })
       }
     }

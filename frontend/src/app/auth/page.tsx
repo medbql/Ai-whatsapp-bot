@@ -11,7 +11,7 @@ import {
 import { Input } from "@/src/components/ui/input"
 import { ChangeEvent, useEffect, useState } from "react"
 import { useRouter } from "next/navigation";
-import { UserData } from "@/src/authContext"
+import { useAuth } from "@/src/authContext"
 import { Button } from "@/src/components/ui/button"
 
 
@@ -27,13 +27,13 @@ const LoginCard = ({isRegister  } : { isRegister : () => void}) =>{
         email : string;
         password : string;
     }
-   const {isAuthenticetd} = UserData();
+   const {dispatch} = useAuth();
    const router = useRouter();
 
     const [from, setForm] = useState<FormState>({
         email : '',
         password : ''        
-    })
+    });
 
     const handelChange = (e : ChangeEvent<HTMLInputElement>) =>{
         const  { name, value} = e.target;
@@ -44,8 +44,11 @@ const LoginCard = ({isRegister  } : { isRegister : () => void}) =>{
         await api.post('/auth/login',from).then(
             ({status, data})=>{
                 if (status === 200) {
-                    localStorage.setItem('Token', data.user.accessToken);
-                    isAuthenticetd('true')
+                    const accessToken : string = data?.user?.accessToken;
+                    const userId : number  =  data?.user?.id;
+                    if (accessToken)  localStorage.setItem('Token',accessToken);
+                    if (userId) localStorage.setItem('userId', String(userId));
+                    dispatch({type:'isAuthenticed', auth: true})
                     router.push('/dashboard')           
                 };
             }
@@ -53,7 +56,8 @@ const LoginCard = ({isRegister  } : { isRegister : () => void}) =>{
     }
 
     const singInGoogle = () =>{
-        window.location.href = process.env.NEXT_PUBLIC_GOOGLE_SINGUP_API as string
+        localStorage.setItem('auth', 'true');
+        window.location.href = process.env.NEXT_PUBLIC_GOOGLE_SINGUP_API as string;
     }
 
     return(
@@ -90,7 +94,7 @@ const LoginCard = ({isRegister  } : { isRegister : () => void}) =>{
         <Button onClick={onSubmit} type="submit" className="w-full">
           Login
         </Button>
-        <Button onClick={ isRegister}  variant="link" className="w-full">
+        <Button onClick={isRegister}  variant="link" className="w-full">
             Register        
         </Button>
          <Button  onClick={singInGoogle}  className="w-full">
@@ -139,20 +143,13 @@ const RegisterCard = ({islogin}:{islogin : () => void}) =>{
       </CardHeader>
       <CardContent>
   <form method="post" >
-          <div className="flex flex-col gap-6">
-            
-               <div className="grid gap-2">
-             
-                <label htmlFor="FirstName">First Name</label>
-              
-     
+          <div className="flex flex-col gap-6">            
+               <div className="grid gap-2">             
+                <label htmlFor="FirstName">First Name</label>     
               <Input id="FirstName" type="text" name="firstName" value={from.firstName} onChange={handelChange} required />
             </div>
-               <div className="grid gap-2">
-             
+               <div className="grid gap-2">             
                 <label htmlFor="LastName">Last Name</label>
-              
-     
               <Input id="LastName" type="text" name="lastName" value={from.lastName} onChange={handelChange} required />
             </div>
  <div className="grid gap-2">
@@ -167,11 +164,8 @@ const RegisterCard = ({islogin}:{islogin : () => void}) =>{
                 required
               />
             </div>
-            <div className="grid gap-2">
-             
+            <div className="grid gap-2">             
                 <label htmlFor="password">Password</label>
-              
-     
               <Input id="password" type="password" name="password" value={from.password} onChange={handelChange} required />
             </div>
           </div>
@@ -184,7 +178,6 @@ const RegisterCard = ({islogin}:{islogin : () => void}) =>{
         <Button onClick={islogin} variant="link" className="w-full">
             Login       
         </Button>
-
       </CardFooter>
     </Card>
  )
@@ -192,14 +185,12 @@ const RegisterCard = ({islogin}:{islogin : () => void}) =>{
 
 export default function LoginPage() {
    const [isLogin, setLogin] = useState<boolean>(true); 
-  const {authenticated} = UserData();
-  const router = useRouter();
+   const {auth} = useAuth();
+   const router = useRouter();
 
   useEffect(()=>{
-    if (authenticated === 'true') {
-      router.replace('/dashboard')
-    }
-  },[authenticated])
+    if (auth) router.replace('/dashboard');
+  },[auth, router])
 
    return (
     <>

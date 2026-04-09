@@ -6,6 +6,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     const authHeader = req.headers.authorization;
     const refreshToken = req.cookies.refreshToken;//get refreshToken from cookies
 
+
     if (!authHeader || !authHeader.startsWith('Bearer ') || !refreshToken) {
       res.status(401).json({
         success: false,

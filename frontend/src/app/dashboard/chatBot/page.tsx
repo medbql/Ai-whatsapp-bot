@@ -1,6 +1,6 @@
 "use client"
 import { Button } from '@/src/components/ui/button';
-import { ChangeEvent, useEffect, useState } from 'react';
+import { ChangeEvent, useContext, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Card,
@@ -17,13 +17,14 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/src/components/ui/native-select"
-import { UserData } from '@/src/authContext';
+
 import {
   Alert,
   AlertAction,
   AlertDescription,
   AlertTitle,
 } from "@/src/components/ui/alert"
+import { userContext } from '../layout';
 
 
 
@@ -40,8 +41,8 @@ interface form {
 
 
 const BotForm = ({ isOpen, isClose }: propsForm) => {
-  const { whatsappNum } = UserData();
   const [showAlert, setShowAlert] = useState<boolean>(false);
+  const {wNumbers} = useContext(userContext);
 
   const [fields, setFiles] = useState<form>({
     botName: '',
@@ -111,7 +112,7 @@ const BotForm = ({ isOpen, isClose }: propsForm) => {
               <NativeSelect className="w-200 my-2 " onChange={handelChange} name="number_id">
                 <NativeSelectOption  value={""} >select a number...</NativeSelectOption>
                 {
-                  whatsappNum.map((num, idx) => (
+                  wNumbers.map((num, idx) => (
                     <NativeSelectOption key={idx} value={num.id} >{num.number}</NativeSelectOption>
                   ))
                 }
@@ -136,19 +137,19 @@ type formFields = {
   number: string
 }
 
-const ChatBot = () => {
+export  default function ChatBot () {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [boots, setBoots] = useState<formFields[]>([])
+  const [boots, setBoots] = useState<formFields[]>([]);
+  const {userId} = useContext(userContext);
+  
   useEffect(() => {
-
     (async () => {
-      await api.get('/boots/1').then(
+      await api.get(`/boots/${userId}`).then(
         ({ status, data }) => {
           if(status === 201){ setBoots(data.data)}
-        }
-      )
-    })()
-  }, [])
+        });
+    })();
+  }, []);
 
   const startBoot = async (sessionId: string): Promise<void> => {
     try {
@@ -195,4 +196,4 @@ const ChatBot = () => {
 
 
 }
-export default ChatBot;
+
